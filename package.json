@@ -1,0 +1,35 @@
+{
+  "name": "build-variants",
+  "version": "0.0.1-alpha.1",
+  "description": "Build and manage styles variants for any libraries.",
+  "author": "Alexis MINEAUD",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "check": "tsc --noEmit",
+    "build": "shx rm -rf dist && shx mkdir dist && tsc --project tsconfig.build.json",
+    "test": "jest",
+    "prepublishOnly": "npm t && npm run build"
+  },
+  "devDependencies": {
+    "@types/jest": "^28.1.3",
+    "@types/lodash.mergewith": "^4.6.7",
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.0",
+    "eslint": "^8.18.0",
+    "jest": "^28.1.1",
+    "nodemon": "^2.0.18",
+    "prettier": "^2.7.1",
+    "shx": "^0.3.4",
+    "ts-jest": "^28.0.5",
+    "ts-node": "^10.8.1",
+    "tsconfig-paths": "^4.0.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "lodash.mergewith": "^4.6.2"
+  }
+}

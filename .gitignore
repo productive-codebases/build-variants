@@ -1,0 +1,6 @@
+node_modules
+
+dist
+
+# optionnal tests with npm pack
+*.tgz

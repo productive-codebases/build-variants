@@ -1,0 +1,5 @@
+# Ignore every files
+/*
+
+# Keep the dist folder
+!/dist
