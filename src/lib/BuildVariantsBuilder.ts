@@ -1,7 +1,12 @@
-import { deepMerge } from '../helpers/deepMerge'
-import { AllVariantsDefinitions, IBuildVariantsBuilderOptions } from './type'
+import { ensureArray } from '../helpers/ensureArray'
+import { logger } from '../helpers/logger'
+import { AllVariantsDefinitions, IBuildVariantsBuilderOptions } from '../types'
+import BuildVariantsCSSMerger from './BuildVariantsCSSMerger'
 
-const logger = console
+type BuildVariantsBuilderFn<
+  TProps extends object,
+  TCSSObject extends object
+> = (builder: BuildVariantsBuilder<TProps, TCSSObject>) => TCSSObject
 
 export default class BuildVariantsBuilder<
   TProps extends object,
@@ -10,7 +15,9 @@ export default class BuildVariantsBuilder<
   private _allVariantsDefinitions: AllVariantsDefinitions<TProps, TCSSObject> =
     new Map()
 
-  private _cssParts: Set<TCSSObject> = new Set()
+  // private _cssParts: Set<TCSSObject> = new Set()
+
+  private _cssMerger = new BuildVariantsCSSMerger<TCSSObject>()
 
   constructor(
     private _props: TProps,
@@ -37,12 +44,22 @@ export default class BuildVariantsBuilder<
   /**
    * Define CSS for a variant.
    */
-  variant<TVariant extends string | boolean>(
+  variant<TVariant extends string>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: TVariant extends string
-      ? Record<TVariant, TCSSObject>
-      : Record<'true' | 'false', TCSSObject>
+    styles: Record<TVariant, TCSSObject>
+  ): this
+
+  variant<TVariant extends boolean>(
+    propName: keyof TProps,
+    variant: TVariant,
+    styles: Record<'true' | 'false', TCSSObject>
+  ): this
+
+  variant<TVariant extends string>(
+    propName: keyof TProps,
+    variant: TVariant,
+    styles: Record<TVariant, TCSSObject>
   ): this {
     if (this._options.apply === false) {
       return this
@@ -80,18 +97,22 @@ export default class BuildVariantsBuilder<
    * Define CSS for a variant with the help of a local BuildVariantsBuilder instance
    * to be able to compose with existing variants.
    */
-  compoundVariant<TVariant extends string | boolean>(
+  compoundVariant<TVariant extends string>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: TVariant extends string
-      ? Record<
-          TVariant,
-          (builder: BuildVariantsBuilder<TProps, TCSSObject>) => TCSSObject
-        >
-      : Record<
-          'true' | 'false',
-          (builder: BuildVariantsBuilder<TProps, TCSSObject>) => TCSSObject
-        >
+    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
+  ): this
+
+  compoundVariant<TVariant extends boolean>(
+    propName: keyof TProps,
+    variant: TVariant,
+    styles: Record<'true' | 'false', BuildVariantsBuilderFn<TProps, TCSSObject>>
+  ): this
+
+  compoundVariant<TVariant extends string>(
+    propName: keyof TProps,
+    variant: TVariant,
+    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
   ): this {
     if (this._options.apply === false) {
       return this
@@ -99,7 +120,11 @@ export default class BuildVariantsBuilder<
 
     const composedStyles = Object.entries(styles).reduce(
       (acc, [variant_, fn]) => {
-        const css = fn(
+        const fn_ = fn as (
+          builder: BuildVariantsBuilder<TProps, TCSSObject>
+        ) => TCSSObject
+
+        const css = fn_(
           new BuildVariantsBuilder<TProps, TCSSObject>(this._props, {
             apply: true,
             variantsDefinitions: this._allVariantsDefinitions
@@ -125,15 +150,13 @@ export default class BuildVariantsBuilder<
   compoundVariants<TVariant extends string>(
     propName: keyof TProps,
     variants: TVariant[],
-    styles: TVariant extends string
-      ? Record<
-          TVariant,
-          (builder: BuildVariantsBuilder<TProps, TCSSObject>) => TCSSObject
-        >
-      : Record<
-          'true' | 'false',
-          (builder: BuildVariantsBuilder<TProps, TCSSObject>) => TCSSObject
-        >
+    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
+  ): this
+
+  compoundVariants<TVariant extends string>(
+    propName: keyof TProps,
+    variants: TVariant[],
+    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
   ): this {
     if (this._options.apply === false) {
       return this
@@ -151,7 +174,7 @@ export default class BuildVariantsBuilder<
    */
   if(
     apply: boolean | (() => boolean),
-    fn: (builder: BuildVariantsBuilder<TProps, TCSSObject>) => TCSSObject
+    fn: BuildVariantsBuilderFn<TProps, TCSSObject>
   ): this {
     const applyValue = typeof apply === 'function' ? apply() : apply
 
@@ -169,19 +192,25 @@ export default class BuildVariantsBuilder<
    */
   get<TPropName extends keyof TProps>(
     propName: TPropName,
-    variant: TProps[TPropName]
+    variants: TProps[TPropName]
   ): this {
+    if (this._options.apply === false) {
+      return this
+    }
+
     const variantDefinition = this._allVariantsDefinitions.get(propName)
 
     if (!variantDefinition) {
       return this
     }
 
-    const cssPart = variantDefinition.get(String(variant))
+    ensureArray(variants).forEach(variant => {
+      const cssPart = variantDefinition.get(String(variant))
 
-    if (cssPart) {
-      this._addCssPart(cssPart)
-    }
+      if (cssPart) {
+        this._addCssPart(cssPart)
+      }
+    })
 
     return this
   }
@@ -190,9 +219,7 @@ export default class BuildVariantsBuilder<
    * Deeply merge all CSS parts.
    */
   end(): TCSSObject {
-    return Array.from(this._cssParts.values()).reduce((acc, cssPart) => {
-      return deepMerge(acc, cssPart)
-    }, {} as TCSSObject)
+    return this._cssMerger.merge()
   }
 
   /**
@@ -201,7 +228,7 @@ export default class BuildVariantsBuilder<
   debug(): this {
     logger.debug('Props:', this._props)
     logger.debug('Variants:', this._allVariantsDefinitions)
-    logger.debug('CSS:', this._cssParts)
+    this._cssMerger.debug()
 
     return this
   }
@@ -236,7 +263,11 @@ export default class BuildVariantsBuilder<
       return this
     }
 
-    this._cssParts.add(css)
+    if (!Object.keys(css).length) {
+      return this
+    }
+
+    this._cssMerger.add(css)
 
     return this
   }

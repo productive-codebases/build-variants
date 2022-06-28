@@ -1,19 +1,9 @@
-import { newBuildVariants } from './newBuildVariants'
-
-interface ISampleCSSObject {
-  color: string
-  border: string
-  fontSize: string
-  background: string
-  fontWeight: string
-  textDecoration: string
-  textDecorationLine: string
-  opacity: number
-}
+import { CSSObject } from 'styled-components'
+import { newBuildVariants } from '../lib/newBuildVariants'
 
 describe('BuildVariantsBuilder', () => {
   function testBuildVariants<TProps extends object>(props: TProps) {
-    return newBuildVariants<TProps, Partial<ISampleCSSObject>>(props)
+    return newBuildVariants<TProps, Partial<CSSObject>>(props)
   }
 
   describe('css()', () => {
@@ -433,6 +423,7 @@ describe('BuildVariantsBuilder', () => {
     it('should add existing CSS definition', () => {
       interface IButtonProps {
         type?: 'unset' | 'info' | 'success' | 'error'
+        font?: Array<'strong' | 'italic'>
         important?: boolean
       }
 
@@ -463,11 +454,23 @@ describe('BuildVariantsBuilder', () => {
             //
           }
         })
+        .variants('font', props.font || [], {
+          strong: {
+            fontWeight: 'bold'
+          },
+
+          italic: {
+            textDecoration: 'italic'
+          }
+        })
         .get('type', 'error')
+        .get('font', ['strong', 'italic'])
         .end()
 
       expect(css).toEqual({
-        background: 'red'
+        background: 'red',
+        fontWeight: 'bold',
+        textDecoration: 'italic'
       })
     })
   })
