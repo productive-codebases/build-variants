@@ -1,6 +1,11 @@
 import { ensureArray } from '../helpers/ensureArray'
 import { logger } from '../helpers/logger'
-import { AllVariantsDefinitions, IBuildVariantsBuilderOptions } from '../types'
+import {
+  IBuildVariantsBuilderOptions,
+  IBuildVariantsMergerCssPartsOptions,
+  PropsVariantsDefinitions
+} from '../types'
+import { MaybeUndef } from '../types/helpers'
 import BuildVariantsCSSMerger from './BuildVariantsCSSMerger'
 
 type BuildVariantsBuilderFn<
@@ -12,10 +17,10 @@ export default class BuildVariantsBuilder<
   TProps extends object,
   TCSSObject extends object
 > {
-  private _allVariantsDefinitions: AllVariantsDefinitions<TProps, TCSSObject> =
-    new Map()
-
-  // private _cssParts: Set<TCSSObject> = new Set()
+  private _allVariantsDefinitions: PropsVariantsDefinitions<
+    TProps,
+    TCSSObject
+  > = new Map()
 
   private _cssMerger = new BuildVariantsCSSMerger<TCSSObject>()
 
@@ -33,12 +38,12 @@ export default class BuildVariantsBuilder<
   /**
    * Define some CSS.
    */
-  css(css: TCSSObject): this {
+  css(css: TCSSObject, options?: IBuildVariantsMergerCssPartsOptions): this {
     if (this._options.apply === false) {
       return this
     }
 
-    return this._addCssPart(css)
+    return this._addCssPart(css, options)
   }
 
   /**
@@ -47,19 +52,22 @@ export default class BuildVariantsBuilder<
   variant<TVariant extends string>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<TVariant, TCSSObject>
+    styles: Record<TVariant, TCSSObject>,
+    options?: IBuildVariantsMergerCssPartsOptions
   ): this
 
   variant<TVariant extends boolean>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<'true' | 'false', TCSSObject>
+    styles: Record<'true' | 'false', TCSSObject>,
+    options?: IBuildVariantsMergerCssPartsOptions
   ): this
 
   variant<TVariant extends string>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<TVariant, TCSSObject>
+    styles: Record<TVariant, TCSSObject>,
+    options?: IBuildVariantsMergerCssPartsOptions
   ): this {
     if (this._options.apply === false) {
       return this
@@ -68,7 +76,8 @@ export default class BuildVariantsBuilder<
     this._saveVariantsDefinition(propName, styles)
 
     return this._addCssPart(
-      (styles as Record<string, TCSSObject>)[String(variant)]
+      (styles as Record<string, TCSSObject>)[String(variant)],
+      options
     )
   }
 
@@ -78,7 +87,8 @@ export default class BuildVariantsBuilder<
   variants<TVariant extends string>(
     propName: keyof TProps,
     variants: TVariant[],
-    styles: Record<TVariant, TCSSObject>
+    styles: Record<TVariant, TCSSObject>,
+    options?: IBuildVariantsMergerCssPartsOptions
   ): this {
     if (this._options.apply === false) {
       return this
@@ -87,7 +97,7 @@ export default class BuildVariantsBuilder<
     this._saveVariantsDefinition(propName, styles)
 
     variants.forEach(variant => {
-      this._addCssPart(styles[variant])
+      this._addCssPart(styles[variant], options)
     })
 
     return this
@@ -112,7 +122,8 @@ export default class BuildVariantsBuilder<
   compoundVariant<TVariant extends string>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
+    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>,
+    options?: IBuildVariantsMergerCssPartsOptions
   ): this {
     if (this._options.apply === false) {
       return this
@@ -120,9 +131,7 @@ export default class BuildVariantsBuilder<
 
     const composedStyles = Object.entries(styles).reduce(
       (acc, [variant_, fn]) => {
-        const fn_ = fn as (
-          builder: BuildVariantsBuilder<TProps, TCSSObject>
-        ) => TCSSObject
+        const fn_ = fn as BuildVariantsBuilderFn<TProps, TCSSObject>
 
         const css = fn_(
           new BuildVariantsBuilder<TProps, TCSSObject>(this._props, {
@@ -141,7 +150,7 @@ export default class BuildVariantsBuilder<
 
     this._saveVariantsDefinition(propName, composedStyles)
 
-    return this._addCssPart(composedStyles[String(variant)])
+    return this._addCssPart(composedStyles[String(variant)], options)
   }
 
   /**
@@ -170,21 +179,21 @@ export default class BuildVariantsBuilder<
   }
 
   /**
-   * Create a local BuildVariantsBuilder instance to add CSS according a predicate.
+   * Create a local BuildVariantsBuilder instance to add CSS according to a predicate.
    */
   if(
     apply: boolean | (() => boolean),
-    fn: BuildVariantsBuilderFn<TProps, TCSSObject>
+    fn: BuildVariantsBuilderFn<TProps, TCSSObject>,
+    options?: IBuildVariantsMergerCssPartsOptions
   ): this {
     const applyValue = typeof apply === 'function' ? apply() : apply
 
     const builder = new BuildVariantsBuilder(this._props, {
-      // pass variants definition to inject variant in the same map
-      variantsDefinitions: this._allVariantsDefinitions,
-      apply: applyValue
+      apply: applyValue,
+      variantsDefinitions: this._allVariantsDefinitions
     })
 
-    return this._addCssPart(fn(builder))
+    return this._addCssPart(fn(builder), options)
   }
 
   /**
@@ -192,7 +201,8 @@ export default class BuildVariantsBuilder<
    */
   get<TPropName extends keyof TProps>(
     propName: TPropName,
-    variants: TProps[TPropName]
+    variants: TProps[TPropName],
+    options?: IBuildVariantsMergerCssPartsOptions
   ): this {
     if (this._options.apply === false) {
       return this
@@ -208,7 +218,7 @@ export default class BuildVariantsBuilder<
       const cssPart = variantDefinition.get(String(variant))
 
       if (cssPart) {
-        this._addCssPart(cssPart)
+        this._addCssPart(cssPart, options)
       }
     })
 
@@ -258,7 +268,10 @@ export default class BuildVariantsBuilder<
   /**
    * Add CSS part.
    */
-  private _addCssPart(css: TCSSObject | undefined): this {
+  private _addCssPart(
+    css: MaybeUndef<TCSSObject>,
+    options?: IBuildVariantsMergerCssPartsOptions
+  ): this {
     if (!css) {
       return this
     }
@@ -267,7 +280,7 @@ export default class BuildVariantsBuilder<
       return this
     }
 
-    this._cssMerger.add(css)
+    this._cssMerger.add(css, options)
 
     return this
   }

@@ -173,8 +173,6 @@ describe('BuildVariantsBuilder-Button', () => {
           }
         })
 
-        // .debug()
-
         .end()
 
       expect(css).toEqual({

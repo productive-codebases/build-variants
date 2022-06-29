@@ -474,4 +474,110 @@ describe('BuildVariantsBuilder', () => {
       })
     })
   })
+
+  describe('with weight', () => {
+    describe('css()', () => {
+      it('should apply css according weight', () => {
+        const css = testBuildVariants({})
+          // should be applyied because using a weight
+          .css(
+            {
+              color: 'red',
+              border: '1px solid black'
+            },
+            { weight: 10 }
+          )
+          .css({
+            color: 'lime'
+          })
+          .end()
+
+        expect(css).toEqual({
+          color: 'red',
+          border: '1px solid black'
+        })
+      })
+    })
+
+    describe('variant()', () => {
+      it('should apply css according weight', () => {
+        interface IProps {
+          color: 'primary' | 'secondary'
+        }
+
+        const props: IProps = {
+          color: 'primary'
+        }
+
+        const css = testBuildVariants(props)
+          .variant(
+            'color',
+            props.color,
+            {
+              primary: {
+                color: 'black',
+                background: 'blue'
+              },
+
+              secondary: {
+                color: 'silver',
+                background: 'white'
+              }
+            },
+            { weight: 10 }
+          )
+
+          // should not override the variant because the variant is weighted
+          .css({
+            color: 'red'
+          })
+
+          .end()
+
+        expect(css).toEqual({
+          color: 'black',
+          background: 'blue'
+        })
+      })
+    })
+
+    describe('if()', () => {
+      it('should apply css according weight', () => {
+        const css = testBuildVariants({})
+          .if(
+            true,
+            builder => {
+              return builder
+                .css({
+                  color: 'red'
+                })
+                .end()
+            },
+            { weight: 20 }
+          )
+
+          .if(
+            true,
+            builder => {
+              return builder
+                .css({
+                  color: 'blue'
+                })
+                .end()
+            },
+            { weight: 10 }
+          )
+
+          .css({
+            color: 'lime'
+          })
+
+          .end()
+
+        expect(css).toEqual({
+          color: 'red'
+        })
+      })
+    })
+  })
 })
