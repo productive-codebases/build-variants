@@ -4,6 +4,10 @@
   "description": "Build and manage styles variants for any libraries.",
   "author": "Alexis MINEAUD",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cr0cK/build-variants"
+  },
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
