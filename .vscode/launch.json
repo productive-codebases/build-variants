@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug current file",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "--inspect-brk",
+        "${file}"
+      ],
+      "runtimeArgs": ["--nolazy", "-r", "ts-node/register", "-r", "tsconfig-paths/register"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Jest: current file",
+      "type": "node",
+      "request": "launch",
+      //"env": { "NODE_ENV": "test" },
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": ["${fileBasenameNoExtension}", "--config", "jest.config.js"],
+      "console": "integratedTerminal",
+      "windows": {
+        "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+      }
+    }
+  ]
+}
