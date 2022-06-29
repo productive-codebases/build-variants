@@ -1,3 +1,5 @@
+import { ObjectNonNullable } from './helpers'
+
 export type VariantDefinitions<TCSSObject extends object> = Map<
   string,
   TCSSObject
@@ -17,4 +19,13 @@ export interface IBuildVariantsBuilderOptions<
 
   // apply or not CSS parts
   apply?: boolean
+}
+
+export interface IBuildVariantsMergerCssPartsOptions {
+  weight?: number
+}
+
+export interface IBuildVariantsMergerCssParts<TCSSObject extends object> {
+  cssObject: TCSSObject
+  options: ObjectNonNullable<IBuildVariantsMergerCssPartsOptions>
 }
