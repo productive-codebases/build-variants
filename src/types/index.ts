@@ -1,18 +1,20 @@
-export type VariantsDefinitions<TCSSObject extends object> = Map<
+export type VariantDefinitions<TCSSObject extends object> = Map<
   string,
   TCSSObject
 >
 
-export type AllVariantsDefinitions<
+export type PropsVariantsDefinitions<
   TProps extends object,
   TCSSObject extends object
-> = Map<keyof TProps, VariantsDefinitions<TCSSObject>>
+> = Map<keyof TProps, VariantDefinitions<TCSSObject>>
 
 export interface IBuildVariantsBuilderOptions<
   TProps extends object,
   TCSSObject extends object
 > {
-  variantsDefinitions?: AllVariantsDefinitions<TProps, TCSSObject>
+  // pass variants definition to inject variant in the same map
+  variantsDefinitions?: PropsVariantsDefinitions<TProps, TCSSObject>
+
+  // apply or not CSS parts
   apply?: boolean
-  debug?: boolean
 }

@@ -1,6 +1,9 @@
 import { ensureArray } from '../helpers/ensureArray'
 import { logger } from '../helpers/logger'
-import { AllVariantsDefinitions, IBuildVariantsBuilderOptions } from '../types'
+import {
+  PropsVariantsDefinitions,
+  IBuildVariantsBuilderOptions
+} from '../types'
 import BuildVariantsCSSMerger from './BuildVariantsCSSMerger'
 
 type BuildVariantsBuilderFn<
@@ -12,10 +15,10 @@ export default class BuildVariantsBuilder<
   TProps extends object,
   TCSSObject extends object
 > {
-  private _allVariantsDefinitions: AllVariantsDefinitions<TProps, TCSSObject> =
-    new Map()
-
-  // private _cssParts: Set<TCSSObject> = new Set()
+  private _allVariantsDefinitions: PropsVariantsDefinitions<
+    TProps,
+    TCSSObject
+  > = new Map()
 
   private _cssMerger = new BuildVariantsCSSMerger<TCSSObject>()
 
@@ -120,9 +123,7 @@ export default class BuildVariantsBuilder<
 
     const composedStyles = Object.entries(styles).reduce(
       (acc, [variant_, fn]) => {
-        const fn_ = fn as (
-          builder: BuildVariantsBuilder<TProps, TCSSObject>
-        ) => TCSSObject
+        const fn_ = fn as BuildVariantsBuilderFn<TProps, TCSSObject>
 
         const css = fn_(
           new BuildVariantsBuilder<TProps, TCSSObject>(this._props, {
@@ -170,7 +171,7 @@ export default class BuildVariantsBuilder<
   }
 
   /**
-   * Create a local BuildVariantsBuilder instance to add CSS according a predicate.
+   * Create a local BuildVariantsBuilder instance to add CSS according to a predicate.
    */
   if(
     apply: boolean | (() => boolean),
@@ -179,9 +180,8 @@ export default class BuildVariantsBuilder<
     const applyValue = typeof apply === 'function' ? apply() : apply
 
     const builder = new BuildVariantsBuilder(this._props, {
-      // pass variants definition to inject variant in the same map
-      variantsDefinitions: this._allVariantsDefinitions,
-      apply: applyValue
+      apply: applyValue,
+      variantsDefinitions: this._allVariantsDefinitions
     })
 
     return this._addCssPart(fn(builder))
