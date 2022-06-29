@@ -36,7 +36,7 @@ describe('BuildVariantsCSSMerger', () => {
     })
   })
 
-  it.only('should merge CSS according to the weight', () => {
+  it('should merge CSS according to the weight', () => {
     const cssParts: Array<IBuildVariantsMergerCssParts<CSSObject>> = [
       {
         cssObject: {
@@ -62,8 +62,6 @@ describe('BuildVariantsCSSMerger', () => {
     cssParts.forEach(cssPart => {
       cssMerger.add(cssPart.cssObject, cssPart.options)
     })
-
-    cssMerger.debug()
 
     expect(cssMerger.merge()).toEqual({
       color: 'red',
