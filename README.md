@@ -173,6 +173,34 @@ const Div = styled.div<Props>props => {
       weight: 10
     })
 
+    // You can conditionate any CSS or variant definition by using `if()` block.
+    .if(
+      // Implement the predicate function here to have a pink color in your button
+      true    // OR `props.variants?.include('fancy') === true,
+      builder => {
+        return builder
+          .css({
+            color: 'pink'
+          })
+          .end()
+      }
+    }
+
+    // The nice trick with `if` is that variants will be automatically "skipped"
+    // from compound variants when being disabled.
+    // For example here, the color variant will not be applyed if used into
+    // compoundVariant (see below).
+    .if(
+      false,
+      builder => {
+        return builder
+          .variant('_color', props._color || 'default', {
+             // ...
+          }
+          .end()
+      }
+    }
+
     // Now, compose with your 'private' variants
     .compoundVariant('type', props.type || 'default', {
       // When composing, we get a new instance of the builder to get existing
@@ -204,42 +232,6 @@ const Div = styled.div<Props>props => {
     // .compoundVariants('types', props.types || [], {
     //   ...
     // })
-
-    // You can conditionate any CSS or variant definition by using `if()` block.
-    .if(
-      // Implement the predicate function here to have a pink color in your button
-      true    // OR `props.variants?.include('fancy') === true,
-      builder => {
-        return builder
-          .css({
-            color: 'pink'
-          })
-
-          // The nice trick with `if` is that this variant can be automatically
-          // "skipped" in compound variants if
-          .variant('_color', props._color || 'default', {
-             // ...
-          }
-
-          .end()
-      }
-    }
-
-    // The nice trick with `if` is that variants will be automatically "skipped"
-    // from compound variants when being disabled.
-    // So your compount variants dont need to have any logic to apply or not
-    // internal variants, you can conditionnate them outside the composition.
-    .if(
-      false,
-      builder => {
-        return builder
-          .variant('_color', props._color || 'default', {
-             // ...
-          }
-
-          .end()
-      }
-    }
 
     // If you have some issues and unexpected CSS applied, you may want debug things
     // so you can use `debug()` function that will log props, variants, CSS parts and
