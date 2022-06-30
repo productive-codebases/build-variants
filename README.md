@@ -26,7 +26,7 @@ import { newBuildVariants } from 'build-variants'
 import { CSSObject } from 'styled-components'
 
 /**
- * Create a BuildVariants instance, typed to use styled-components's `CSSObject`s.
+ * Create a build-variants instance, typed to use styled-components's `CSSObject`s.
  */
 export function buildVariants<TProps extends object>(props: TProps) {
   return newBuildVariants<TProps, CSSObject>(props)
@@ -49,7 +49,7 @@ interface IMyStyles {
 }
 
 /**
- * Create a BuildVariants instance, typed to use styled-components's `CSSObject`s.
+ * Create a build-variants instance, typed to use styled-components's `CSSObject`s.
  */
 export function buildVariants<TProps extends object>(props: TProps) {
   return newBuildVariants<TProps, Partial<IMyStyles>>(props)
@@ -57,7 +57,7 @@ export function buildVariants<TProps extends object>(props: TProps) {
 ```
 
 
-### Step 2 - Build your variants!
+### Step 2 - Build your variants
 
 
 ```tsx
@@ -77,6 +77,9 @@ interface Props {
   // Define a 'private' property for font variants.
   // This is an array, meaning that you can apply several values at once.
   _font?: Array<'default' | 'bold' | 'italic'>,
+
+  // Define a 'private' property for a disabled state that is a boolean
+  _disabled?: boolean
 
   type?: 'default' | 'primary' | 'secondary'
 }
@@ -137,7 +140,7 @@ const Div = styled.div<Props>props => {
     })
 
     // Same thing with the font variant.
-    // Notice that we use `variants` to manipulate an array of unions.
+    // Note that we use `variant*s*` to manipulate an array of unions.
     .variants('_font', props._font || [], {
       default: {
         // Inherits from the parent
@@ -150,6 +153,24 @@ const Div = styled.div<Props>props => {
       italic: {
         fontStyle: 'italic'
       }
+    })
+
+    // Same thing with the disabled variant which is a boolean.
+    // Therefore we need to define the true and false cases.
+    .variant('_disabled', props._disabled || [], {
+      true: {
+        background: 'silver'
+      },
+
+      false: {
+        // Nothing is not disabled
+      }
+    }, {
+      // When the button is disabled, we want that the background:silver takes
+      // the precedence over all other backgrounds rules.
+      // So you can use the `weight` option to ponderate your CSS definition(s).
+      // Weight is also available for variant(s), compoundVariant(s) and if blocks.
+      weight: 10
     })
 
     // Now, compose with your 'private' variants
@@ -220,18 +241,6 @@ const Div = styled.div<Props>props => {
       }
     }
 
-    // And finally, for various reason, you want to override the color defined
-    // previously.
-    // So you can use the `weight` option to ponderate your CSS definition(s).
-    // Weight is also available for variant(s), compoundVariant(s) and if blocks.
-    css({
-      color: 'lime'
-    }, {
-      // By default, weight is 0 when not set. So here, color:lime will be applied last,
-      // overriding previous definitions blocks.
-      weight: 10
-    })
-
     // If you have some issues and unexpected CSS applied, you may want debug things
     // so you can use `debug()` function that will log props, variants, CSS parts and
     // final merged CSS object.
@@ -242,10 +251,10 @@ const Div = styled.div<Props>props => {
     .end()
 })
 
-// Create a component and render a "primary" button.
+// Create a component and render a disabled "primary" button.
 function ButtonComponent() {
   return (
-    <Div type="primary">
+    <Div type="primary" disabled>
       <button>Button</button>
     </Div>
   )
@@ -254,19 +263,21 @@ function ButtonComponent() {
 /* CSS will be:
 
 {
-  // defined in the first block
+  // Defined in the first block
   '> button': {
     all: 'unset'
   },
 
-  // get from the primary background variant, it will override the background set in the second CSS block
-  background: 'blue',
+  // Get the background set in the disabled variant. And because we added a weight
+  // option, the background:silver takes the precedence over backgrounds set in
+  // the primary variant (blue) and in the first CSS block (white).
+  background: 'silver',
 
-  // get from the primary font variant, two variants applyed at the same time
+  // Get from the primary font variant, two variants applyed at the same time
   fontWeight: 'bold',
   fontStyle: 'italic'
 
-  // finally, the color will be lime, because the weight option overrides the color defined in the primary variant.
+  // Finally, the color will be lime, because the weight option overrides the color defined in the primary variant.
   color: 'lime'
 }
 
