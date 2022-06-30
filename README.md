@@ -81,6 +81,7 @@ interface Props {
   // Define a 'private' property for a disabled state that is a boolean
   _disabled?: boolean
 
+  // Finally, define a "public" variant
   type?: 'default' | 'primary' | 'secondary'
 }
 
@@ -225,6 +226,14 @@ const Div = styled.div<Props>props => {
         .get('_color', 'secondary')
         .get('_background', 'secondary')
         .get('_font', ['bold', 'italic'])
+
+        // Not recommanded but you have the full API of the builder available here.
+        // So you can create new CSS or variant(s) of event compoundVariant(s) in this
+        // compoundVariant definition!
+        // .css({
+        //   background: 'white'
+        // })
+
         .end()
     })
 
@@ -269,11 +278,22 @@ function ButtonComponent() {
   fontWeight: 'bold',
   fontStyle: 'italic'
 
-  // Finally, the color will be lime, because the weight option overrides the color defined in the primary variant.
-  color: 'lime'
+  // Get from the primary color variant
+  // (color:pink is not applyed because declared before the primary variant and
+  // no weight value has been set)
+  color: 'white'
 }
 
 */
 ```
+
+### About private and public variants
+
+It is a proposal to manage variants with a different level of visibility but there is no obligation at all to follow this pattern.
+
+The interesting approach with private and public variants is that you and your consumers have maximum flexibility.
+
+Consumers are incited to use only public variants and it's recommended to communicate only on "official" and "public" variants  but if a custom specific need is required, consumers can use internal variants and customize the component as their needs. It's not recommended but sometimes, pragmatism is a good thing.
+
 
 Have fun building variants! :)
