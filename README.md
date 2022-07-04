@@ -49,7 +49,7 @@ interface IMyStyles {
 }
 
 /**
- * Create a build-variants instance, typed to use styled-components's `CSSObject`s.
+ * Create a build-variants instance, to use Partial<IMyStyles>
  */
 export function buildVariants<TProps extends object>(props: TProps) {
   return newBuildVariants<TProps, Partial<IMyStyles>>(props)
