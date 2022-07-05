@@ -49,7 +49,7 @@ interface IMyStyles {
 }
 
 /**
- * Create a build-variants instance, typed to use styled-components's `CSSObject`s.
+ * Create a build-variants instance, to use Partial<IMyStyles>
  */
 export function buildVariants<TProps extends object>(props: TProps) {
   return newBuildVariants<TProps, Partial<IMyStyles>>(props)
@@ -86,7 +86,7 @@ interface Props {
 }
 
 // Style a div component by using styled-components here.
-const Div = styled.div<Props>props => {
+const Div = styled.div<Props>(props => {
   // Get a new instance of build-variant.
   // Note that we use here `buildVariants()` defined in step 1 to be able to write
   // CSS styles as styled-components' CSS objects.
@@ -185,7 +185,7 @@ const Div = styled.div<Props>props => {
           })
           .end()
       }
-    }
+    )
 
     // The nice trick with `if` is that variants will be automatically "skipped"
     // from compound variants when being disabled.
@@ -200,7 +200,7 @@ const Div = styled.div<Props>props => {
           }
           .end()
       }
-    }
+    )
 
     // Now, compose with your 'private' variants
     .compoundVariant('type', props.type || 'default', {
