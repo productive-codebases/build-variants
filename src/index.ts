@@ -1,5 +1,5 @@
 /**
- * Bouchon
+ * Expose build-variants functions and types.
  */
 
 export { newBuildVariants } from './lib/newBuildVariants'
