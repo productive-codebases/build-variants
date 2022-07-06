@@ -16,7 +16,7 @@ npm install build-variants
 
 ## Prerequisites
 
-Typescript is not mandatory but highly recommended. Build-variants leverage a lot
+Typescript is not mandatory but highly recommended. Build-variants leverages a lot
 on Typescript generics and inference to provide types checking at every level.
 
 
@@ -45,7 +45,7 @@ export function buildVariants<TProps extends object>(props: TProps) {
 }
 ```
 
-Note that you can the interface you want. Consider using `React.CSSProperties`
+Note that you can use the interface you want. Consider using `React.CSSProperties`
 if you are doing raw React styles or your custom object definition:
 
 ```ts
@@ -312,31 +312,31 @@ Consumers are incited to use only public variants and it's recommended to commun
 
 ### About variants versus props interpolation
 
-Variants is something relatively new in CSS-in-JS world that libraries like Stitches have democratized by adding  first-class variant API support.
+Variants is something relatively new in CSS-in-JS world that libraries like Stitches have made popular by adding first-class variant API support.
 
 Stitches advocates [variants design instead of props interpolation)(https://stitches.dev/blog/migrating-from-emotion-to-stitches), meaning that variants are defined directly during the styles implementation, by infering definitions. It quicky adds complexity when it comes to extracting those variants in order to reuse them in another contexts. More generally, not having clear interfaces is rarely a good idea.
 
 Build-variants vision is more as:
 
 1. First, define clear interfaces for your components,
-2. Secondly, implement your interface by defining CSS and variants.
-3. Optionally, compose your variants if you need more high-level behaviors (like a "primary" type that defines a bunch of styles like colors, background and borders for example)
+2. Secondly, implement your interface by defining CSS and variants,
+3. Optionally, compose your variants if you need more high-level behaviors (like a "primary" type that defines a bunch of styles like colors, background and borders for example).
 
 Build-variants provides both, a first-class variant API and props interpolation, allowing to define variants according to props values.
 
 
 ### About tokens
 
-[Tokens](https://stitches.dev/docs/tokens) (strings) could be seen as a handly way to create shortcuts for complex styles definitions. But you should consider as well the drawbacks of using simple strings that can't reference the source of the implementation in addition that adding more and more aliases of styles may obfuscate a bit which styles are really applied at the end.
+[Tokens](https://stitches.dev/docs/tokens) (strings) could be seen as a handly way to create shortcuts for complex styles definitions. But you should consider as well the drawbacks of using simple strings that can't reference the source of the implementation in addition that adding more and more aliases of styles may obfuscate a bit which styles are really applied in the end.
 
-For values, you should better considerate importing directly what you need. If you need a custom set of styles, you can create a function and invokes it directly in styles definition.
+For values, you may want to consider importing directly what you need. If you need a custom set of styles, you can create a function and invoke it directly in styles definition.
 
 ```tsx
 function monospaceFontStyles(): CSSObject {
   return {
     fontFamily: 'monospace',
     letterSpacing: '1em',
-    fontWeight: 5000
+    fontWeight: 500
   }
 }
 
@@ -357,13 +357,13 @@ Instead of importing a function to inject styles, an another option could be to
 define kind of global variants used to apply styles without having to import things
 and without having to define the "same" variant in various places.
 
-To do so, you can leverage of the initial `buildVariants` function that defines
-the type to use for styles. Just add some variants definitions here and expose
-an interface that you can use when styling your components.
+To do so, you could make use of the initial the initial `buildVariants` function
+that defines the type to use for styles. Just add some variants definitions here
+and expose an interface that you can use when styling your components.
 
 
 ```ts
-// Define a ExtendedStyledProps type that will extend TProps with some
+// Define an ExtendedStyledProps type that will extend TProps with some
 // default variants. Here we define a "font" variant.
 export type ExtendedStyledProps<TProps extends object> = TProps & {
   font?: 'default' | 'monospace'
