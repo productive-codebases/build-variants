@@ -221,20 +221,20 @@ const Div = styled.div<Props>(props => {
       // Final `end()` function merges all CSS definitions get from the composition.
       // Here we don't want to style the default case, so we directly call the
       // end function.
-      default: builder.end()
+      default: builder => builder.end()
 
       // Here we define the type=primary variant from existing color, background
       // and font variants.
       // In this example, we use two definitions for the font variant. So the font
       // will be bold and italic.
-      primary: builder
+      primary: builder => builder
         .get('_color', 'primary')
         .get('_background', 'primary')
         .get('_font', ['bold', 'italic'])
         .end(),
 
       // In the same way, compose to define type=secondary variant.
-      secondary: builder
+      secondary: builder => builder
         .get('_color', 'secondary')
         .get('_background', 'secondary')
         .get('_font', ['bold', 'italic'])
