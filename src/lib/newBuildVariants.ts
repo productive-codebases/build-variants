@@ -1,3 +1,4 @@
+import { LitteralObject } from '../types'
 import BuildVariantsBuilder from './BuildVariantsBuilder'
 
 /**
@@ -17,8 +18,8 @@ import BuildVariantsBuilder from './BuildVariantsBuilder'
  * })
  */
 export function newBuildVariants<
-  TProps extends object,
-  TCSSObject extends object
+  TProps extends LitteralObject,
+  TCSSObject extends LitteralObject
 >(props: TProps): BuildVariantsBuilder<TProps, TCSSObject> {
   return new BuildVariantsBuilder<TProps, TCSSObject>(props)
 }

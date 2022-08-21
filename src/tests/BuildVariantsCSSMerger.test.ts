@@ -30,7 +30,7 @@ describe('BuildVariantsCSSMerger', () => {
       cssMerger.add(cssPart.cssObject, cssPart.options)
     })
 
-    expect(cssMerger.merge()).toEqual({
+    expect(cssMerger.end()).toEqual({
       color: 'lime',
       background: 'silver'
     })
@@ -63,7 +63,7 @@ describe('BuildVariantsCSSMerger', () => {
       cssMerger.add(cssPart.cssObject, cssPart.options)
     })
 
-    expect(cssMerger.merge()).toEqual({
+    expect(cssMerger.end()).toEqual({
       color: 'red',
       background: 'silver'
     })
@@ -101,7 +101,7 @@ describe('BuildVariantsCSSMerger', () => {
       cssMerger.add(cssPart.cssObject, cssPart.options)
     })
 
-    expect(cssMerger.merge()).toEqual({
+    expect(cssMerger.end()).toEqual({
       border: '1px solid black',
 
       '> button': {

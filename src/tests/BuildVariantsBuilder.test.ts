@@ -1,9 +1,13 @@
 import { CSSObject } from 'styled-components'
 import { newBuildVariants } from '../lib/newBuildVariants'
+import { LitteralObject } from '../types'
 
 describe('BuildVariantsBuilder', () => {
-  function testBuildVariants<TProps extends object>(props: TProps) {
-    return newBuildVariants<TProps, Partial<CSSObject>>(props)
+  function testBuildVariants<
+    TProps extends LitteralObject,
+    TCSSObject extends LitteralObject = CSSObject
+  >(props: TProps) {
+    return newBuildVariants<TProps, TCSSObject>(props)
   }
 
   describe('css()', () => {
@@ -416,6 +420,52 @@ describe('BuildVariantsBuilder', () => {
 
       // should not have border because disabled with if()
       expect(css).not.toHaveProperty('border')
+    })
+  })
+
+  describe('replace()', () => {
+    it('should replace some CSS definitions', () => {
+      type CustomCSSObject = CSSObject & {
+        $debug?: 'true' | 'false'
+      }
+
+      const css = testBuildVariants<{}, CustomCSSObject>({})
+        .css({
+          $debug: 'true',
+          opacity: 0.5
+        })
+
+        .replace('opacity', value => {
+          return {
+            opacity: value,
+            MozOpacity: value
+          }
+        })
+
+        .replace('$debug', value => {
+          switch (value) {
+            case 'true': {
+              return {
+                outline: '1px solid red'
+              }
+            }
+
+            case 'false': {
+              return {}
+            }
+
+            default:
+              return {}
+          }
+        })
+
+        .end()
+
+      expect(css).not.toHaveProperty('$debug')
+      expect(css).toHaveProperty('outline', '1px solid red')
+
+      expect(css).toHaveProperty('opacity', 0.5)
+      expect(css).toHaveProperty('MozOpacity', 0.5)
     })
   })
 

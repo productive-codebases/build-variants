@@ -1,5 +1,7 @@
 import { ObjectNonNullable } from './helpers'
 
+export type LitteralObject = object
+
 export type VariantDefinitions<TCSSObject extends object> = Map<
   string,
   TCSSObject
