@@ -30,9 +30,30 @@ export default class BuildVariantsCSSMerger<TCSSObject extends object> {
   }
 
   /**
+   * Merge and transform CSS parts.
+   */
+  end(): TCSSObject {
+    return this._merge()
+  }
+
+  /**
+   * Print privates for debugging.
+   */
+  debug(): this {
+    logger.debug('CSS parts:', this._cssParts)
+    logger.debug('CSS:', this._merge())
+
+    return this
+  }
+
+  /**
+   * Private
+   */
+
+  /**
    * Deeply merge all CSS parts, optionally ordered by cssPart weight.
    */
-  merge(): TCSSObject {
+  private _merge(): TCSSObject {
     const cssParts = Array.from(this._cssParts.values()).sort((a, b) => {
       // keep existing order if same weight
       if (a.options.weight === b.options.weight) {
@@ -45,15 +66,5 @@ export default class BuildVariantsCSSMerger<TCSSObject extends object> {
     return cssParts.reduce((acc, cssPart) => {
       return deepMerge(acc, cssPart.cssObject)
     }, {} as TCSSObject)
-  }
-
-  /**
-   * Print privates for debugging.
-   */
-  debug(): this {
-    logger.debug('CSS parts:', this._cssParts)
-    logger.debug('CSS:', this.merge())
-
-    return this
   }
 }

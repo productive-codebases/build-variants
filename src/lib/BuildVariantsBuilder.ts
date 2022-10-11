@@ -3,19 +3,20 @@ import { logger } from '../helpers/logger'
 import {
   IBuildVariantsBuilderOptions,
   IBuildVariantsMergerCssPartsOptions,
+  LitteralObject,
   PropsVariantsDefinitions
 } from '../types'
 import { MaybeUndef } from '../types/helpers'
 import BuildVariantsCSSMerger from './BuildVariantsCSSMerger'
 
 type BuildVariantsBuilderFn<
-  TProps extends object,
-  TCSSObject extends object
+  TProps extends LitteralObject,
+  TCSSObject extends LitteralObject
 > = (builder: BuildVariantsBuilder<TProps, TCSSObject>) => TCSSObject
 
 export default class BuildVariantsBuilder<
-  TProps extends object,
-  TCSSObject extends object
+  TProps extends LitteralObject,
+  TCSSObject extends LitteralObject
 > {
   private _allVariantsDefinitions: PropsVariantsDefinitions<
     TProps,
@@ -23,6 +24,8 @@ export default class BuildVariantsBuilder<
   > = new Map()
 
   private _cssMerger = new BuildVariantsCSSMerger<TCSSObject>()
+
+  private _replacements: Map<string, (value: any) => TCSSObject> = new Map()
 
   constructor(
     private _props: TProps,
@@ -52,31 +55,31 @@ export default class BuildVariantsBuilder<
   variant<TVariant extends string>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<TVariant, TCSSObject>,
+    cssDefinitions: Record<TVariant, TCSSObject>,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this
 
   variant<TVariant extends boolean>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<'true' | 'false', TCSSObject>,
+    cssDefinitions: Record<'true' | 'false', TCSSObject>,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this
 
   variant<TVariant extends string>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<TVariant, TCSSObject>,
+    cssDefinitions: Record<TVariant, TCSSObject>,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this {
     if (this._options.apply === false) {
       return this
     }
 
-    this._saveVariantsDefinition(propName, styles)
+    this._saveVariantsDefinition(propName, cssDefinitions)
 
     return this._addCssPart(
-      (styles as Record<string, TCSSObject>)[String(variant)],
+      (cssDefinitions as Record<string, TCSSObject>)[String(variant)],
       options
     )
   }
@@ -87,17 +90,17 @@ export default class BuildVariantsBuilder<
   variants<TVariant extends string>(
     propName: keyof TProps,
     variants: TVariant[],
-    styles: Record<TVariant, TCSSObject>,
+    cssDefinitions: Record<TVariant, TCSSObject>,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this {
     if (this._options.apply === false) {
       return this
     }
 
-    this._saveVariantsDefinition(propName, styles)
+    this._saveVariantsDefinition(propName, cssDefinitions)
 
     variants.forEach(variant => {
-      this._addCssPart(styles[variant], options)
+      this._addCssPart(cssDefinitions[variant], options)
     })
 
     return this
@@ -110,26 +113,32 @@ export default class BuildVariantsBuilder<
   compoundVariant<TVariant extends string>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
+    cssDefinitions: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
   ): this
 
   compoundVariant<TVariant extends boolean>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<'true' | 'false', BuildVariantsBuilderFn<TProps, TCSSObject>>
+    cssDefinitions: Record<
+      'true' | 'false',
+      BuildVariantsBuilderFn<TProps, TCSSObject>
+    >
   ): this
 
   compoundVariant<TVariant extends string>(
     propName: keyof TProps,
     variant: TVariant,
-    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>,
+    cssDefinitions: Record<
+      TVariant,
+      BuildVariantsBuilderFn<TProps, TCSSObject>
+    >,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this {
     if (this._options.apply === false) {
       return this
     }
 
-    const composedStyles = Object.entries(styles).reduce(
+    const composedCss = Object.entries(cssDefinitions).reduce(
       (acc, [variant_, fn]) => {
         const fn_ = fn as BuildVariantsBuilderFn<TProps, TCSSObject>
 
@@ -148,9 +157,9 @@ export default class BuildVariantsBuilder<
       {} as Record<string, TCSSObject>
     )
 
-    this._saveVariantsDefinition(propName, composedStyles)
+    this._saveVariantsDefinition(propName, composedCss)
 
-    return this._addCssPart(composedStyles[String(variant)], options)
+    return this._addCssPart(composedCss[String(variant)], options)
   }
 
   /**
@@ -159,20 +168,20 @@ export default class BuildVariantsBuilder<
   compoundVariants<TVariant extends string>(
     propName: keyof TProps,
     variants: TVariant[],
-    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
+    cssDefinitions: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
   ): this
 
   compoundVariants<TVariant extends string>(
     propName: keyof TProps,
     variants: TVariant[],
-    styles: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
+    cssDefinitions: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
   ): this {
     if (this._options.apply === false) {
       return this
     }
 
     variants.forEach(variant => {
-      this.compoundVariant(propName, variant, styles)
+      this.compoundVariant(propName, variant, cssDefinitions)
     })
 
     return this
@@ -226,10 +235,27 @@ export default class BuildVariantsBuilder<
   }
 
   /**
+   * Save replacements of some CSS definitions.
+   */
+  replace<TCSSPropName extends keyof TCSSObject>(
+    cssPropName: TCSSPropName,
+    fn: (value: TCSSObject[TCSSPropName]) => TCSSObject
+  ): this {
+    this._replacements.set(String(cssPropName), fn)
+    return this
+  }
+
+  /**
    * Deeply merge all CSS parts.
    */
   end(): TCSSObject {
-    return this._cssMerger.merge()
+    const css = this._cssMerger.end()
+
+    if (!this._replacements.size) {
+      return css
+    }
+
+    return this._applyCSSReplacements(css)
   }
 
   /**
@@ -252,13 +278,13 @@ export default class BuildVariantsBuilder<
    */
   private _saveVariantsDefinition<TVariant extends string>(
     propName: keyof TProps,
-    styles: Record<TVariant, TCSSObject>
+    cssDefinitions: Record<TVariant, TCSSObject>
   ) {
     const variantsMap =
       this._allVariantsDefinitions.get(propName) ||
       new Map<string, TCSSObject>()
 
-    Object.entries(styles).forEach(([variant, css]) => {
+    Object.entries(cssDefinitions).forEach(([variant, css]) => {
       variantsMap.set(variant, css as TCSSObject)
     })
 
@@ -283,5 +309,26 @@ export default class BuildVariantsBuilder<
     this._cssMerger.add(css, options)
 
     return this
+  }
+
+  /**
+   * Apply CSS replacements.
+   * For each replacement found, delete the existing CSS definitions and merge the
+   * new ones from the defined function.
+   */
+  private _applyCSSReplacements(css: TCSSObject): TCSSObject {
+    const merger = new BuildVariantsCSSMerger<TCSSObject>().add(css)
+
+    Array.from(this._replacements.entries()).forEach(([cssPropName, fn]) => {
+      if (cssPropName in css) {
+        const value = (css as any)[cssPropName]
+        const cssReplacement = fn(value)
+        delete (css as any)[cssPropName]
+
+        merger.add(cssReplacement)
+      }
+    })
+
+    return merger.end()
   }
 }
