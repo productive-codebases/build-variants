@@ -1,6 +1,8 @@
 node_modules
-
 dist
+
+# configs
+.vscode/settings.json
 
 # optionnal tests with npm pack
 *.tgz
