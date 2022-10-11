@@ -41,12 +41,29 @@ export default class BuildVariantsBuilder<
   /**
    * Define some CSS.
    */
-  css(css: TCSSObject, options?: IBuildVariantsMergerCssPartsOptions): this {
+
+  css(
+    cssOrFn: TCSSObject | BuildVariantsBuilderFn<TProps, TCSSObject>,
+    options?: IBuildVariantsMergerCssPartsOptions
+  ): this {
     if (this._options.apply === false) {
       return this
     }
 
-    return this._addCssPart(css, options)
+    if (typeof cssOrFn === 'function') {
+      // create an isolate builder instance to be able to compose with base variants
+      // locally to the `css` block
+      const cssObject = cssOrFn(
+        new BuildVariantsBuilder<TProps, TCSSObject>(this._props, {
+          apply: true,
+          variantsDefinitions: this._allVariantsDefinitions
+        })
+      )
+
+      return this._addCssPart(cssObject, options)
+    }
+
+    return this._addCssPart(cssOrFn, options)
   }
 
   /**
@@ -62,7 +79,11 @@ export default class BuildVariantsBuilder<
   variant<TVariant extends boolean>(
     propName: keyof TProps,
     variant: TVariant,
-    cssDefinitions: Record<'true' | 'false', TCSSObject>,
+    cssDefinitions: Record<
+      // variant for boolean values
+      'true' | 'false',
+      TCSSObject
+    >,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this
 
@@ -120,6 +141,7 @@ export default class BuildVariantsBuilder<
     propName: keyof TProps,
     variant: TVariant,
     cssDefinitions: Record<
+      // compoundVariant for boolean values
       'true' | 'false',
       BuildVariantsBuilderFn<TProps, TCSSObject>
     >
@@ -165,12 +187,6 @@ export default class BuildVariantsBuilder<
   /**
    * Define compounds CSS for a list of variants.
    */
-  compoundVariants<TVariant extends string>(
-    propName: keyof TProps,
-    variants: TVariant[],
-    cssDefinitions: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
-  ): this
-
   compoundVariants<TVariant extends string>(
     propName: keyof TProps,
     variants: TVariant[],
