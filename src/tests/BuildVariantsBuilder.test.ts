@@ -29,6 +29,58 @@ describe('BuildVariantsBuilder', () => {
         fontSize: '10px'
       })
     })
+
+    describe('with builder', () => {
+      it('should create an isolated builder instance', () => {
+        interface ISvgProps {
+          _variants?: Array<'default' | 'active'>
+          variant?: 'default' | 'active'
+        }
+
+        const props: ISvgProps = {}
+
+        const css = testBuildVariants(props)
+          .variants('_variants', props._variants || ['default'], {
+            default: {
+              '> path': {
+                stroke: 'black'
+              }
+            },
+
+            active: {
+              '> path': {
+                stroke: 'red'
+              }
+            }
+          })
+          .compoundVariant('variant', props.variant || 'default', {
+            default: builder =>
+              builder
+                .get('_variants', ['default'])
+                // Get an isolated builder_ instance to be able to compose with base
+                // variants only locally for the :hover directive
+                .css(builder_ => ({
+                  ':hover': builder_.get('_variants', ['active']).end()
+                }))
+                .end(),
+
+            active: builder => builder.get('_variants', ['active']).end()
+          })
+          .end()
+
+        expect(css).toEqual({
+          '> path': {
+            stroke: 'black'
+          },
+
+          ':hover': {
+            '> path': {
+              stroke: 'red'
+            }
+          }
+        })
+      })
+    })
   })
 
   describe('variant()', () => {

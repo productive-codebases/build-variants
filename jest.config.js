@@ -11,11 +11,6 @@ module.exports = {
     '!**/node_modules/**'
   ],
   coverageDirectory: 'reports/coverage',
-  globals: {
-    'ts-jest': {
-      diagnostics: false
-    }
-  },
   testEnvironment: 'node',
   bail: false,
   verbose: true,
