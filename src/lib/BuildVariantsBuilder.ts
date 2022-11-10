@@ -1,4 +1,5 @@
 import { ensureArray } from '../helpers/ensureArray'
+import { isDefined } from '../helpers/isDefined'
 import { logger } from '../helpers/logger'
 import {
   IBuildVariantsBuilderOptions,
@@ -6,7 +7,7 @@ import {
   LitteralObject,
   PropsVariantsDefinitions
 } from '../types'
-import { MaybeUndef } from '../types/helpers'
+import { MaybeUndef, Perhaps } from '../types/helpers'
 import BuildVariantsCSSMerger from './BuildVariantsCSSMerger'
 
 type BuildVariantsBuilderFn<
@@ -66,19 +67,27 @@ export default class BuildVariantsBuilder<
     return this._addCssPart(cssOrFn, options)
   }
 
+  // alias of css (useful when using buildVariants in a different context than CSS)
+  values(
+    cssOrFn: TCSSObject | BuildVariantsBuilderFn<TProps, TCSSObject>,
+    options?: IBuildVariantsMergerCssPartsOptions
+  ): this {
+    return this.css(cssOrFn, options)
+  }
+
   /**
    * Define CSS for a variant.
    */
   variant<TVariant extends string>(
     propName: keyof TProps,
-    variant: TVariant,
+    variant: Perhaps<TVariant>,
     cssDefinitions: Record<TVariant, TCSSObject>,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this
 
   variant<TVariant extends boolean>(
     propName: keyof TProps,
-    variant: TVariant,
+    variant: Perhaps<TVariant>,
     cssDefinitions: Record<
       // variant for boolean values
       'true' | 'false',
@@ -89,7 +98,7 @@ export default class BuildVariantsBuilder<
 
   variant<TVariant extends string>(
     propName: keyof TProps,
-    variant: TVariant,
+    variant: Perhaps<TVariant>,
     cssDefinitions: Record<TVariant, TCSSObject>,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this {
@@ -98,6 +107,10 @@ export default class BuildVariantsBuilder<
     }
 
     this._saveVariantsDefinition(propName, cssDefinitions)
+
+    if (!isDefined(variant)) {
+      return this
+    }
 
     return this._addCssPart(
       (cssDefinitions as Record<string, TCSSObject>)[String(variant)],
@@ -110,7 +123,7 @@ export default class BuildVariantsBuilder<
    */
   variants<TVariant extends string>(
     propName: keyof TProps,
-    variants: TVariant[],
+    variants: Perhaps<TVariant[]>,
     cssDefinitions: Record<TVariant, TCSSObject>,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this {
@@ -119,6 +132,10 @@ export default class BuildVariantsBuilder<
     }
 
     this._saveVariantsDefinition(propName, cssDefinitions)
+
+    if (!isDefined(variants)) {
+      return this
+    }
 
     variants.forEach(variant => {
       this._addCssPart(cssDefinitions[variant], options)
@@ -133,13 +150,13 @@ export default class BuildVariantsBuilder<
    */
   compoundVariant<TVariant extends string>(
     propName: keyof TProps,
-    variant: TVariant,
+    variant: Perhaps<TVariant>,
     cssDefinitions: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
   ): this
 
   compoundVariant<TVariant extends boolean>(
     propName: keyof TProps,
-    variant: TVariant,
+    variant: Perhaps<TVariant>,
     cssDefinitions: Record<
       // compoundVariant for boolean values
       'true' | 'false',
@@ -149,7 +166,7 @@ export default class BuildVariantsBuilder<
 
   compoundVariant<TVariant extends string>(
     propName: keyof TProps,
-    variant: TVariant,
+    variant: Perhaps<TVariant>,
     cssDefinitions: Record<
       TVariant,
       BuildVariantsBuilderFn<TProps, TCSSObject>
@@ -181,6 +198,10 @@ export default class BuildVariantsBuilder<
 
     this._saveVariantsDefinition(propName, composedCss)
 
+    if (!isDefined(variant)) {
+      return this
+    }
+
     return this._addCssPart(composedCss[String(variant)], options)
   }
 
@@ -189,10 +210,14 @@ export default class BuildVariantsBuilder<
    */
   compoundVariants<TVariant extends string>(
     propName: keyof TProps,
-    variants: TVariant[],
+    variants: Perhaps<TVariant[]>,
     cssDefinitions: Record<TVariant, BuildVariantsBuilderFn<TProps, TCSSObject>>
   ): this {
     if (this._options.apply === false) {
+      return this
+    }
+
+    if (!isDefined(variants)) {
       return this
     }
 
