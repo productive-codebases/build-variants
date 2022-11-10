@@ -2,12 +2,13 @@ import { ensureArray } from '../helpers/ensureArray'
 import { isDefined } from '../helpers/isDefined'
 import { logger } from '../helpers/logger'
 import {
+  BuildVariantsMergerCssPartsOptionsPublic,
   IBuildVariantsBuilderOptions,
   IBuildVariantsMergerCssPartsOptions,
   LitteralObject,
   PropsVariantsDefinitions
 } from '../types'
-import { MaybeUndef, Perhaps } from '../types/helpers'
+import { Maybe, MaybeUndef, Perhaps } from '../types/helpers'
 import BuildVariantsCSSMerger from './BuildVariantsCSSMerger'
 
 type BuildVariantsBuilderFn<
@@ -45,7 +46,7 @@ export default class BuildVariantsBuilder<
 
   css(
     cssOrFn: TCSSObject | BuildVariantsBuilderFn<TProps, TCSSObject>,
-    options?: IBuildVariantsMergerCssPartsOptions
+    options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this {
     if (this._options.apply === false) {
       return this
@@ -61,16 +62,16 @@ export default class BuildVariantsBuilder<
         })
       )
 
-      return this._addCssPart(cssObject, options)
+      return this._addCssPart(null, cssObject, options)
     }
 
-    return this._addCssPart(cssOrFn, options)
+    return this._addCssPart(null, cssOrFn, options)
   }
 
   // alias of css (useful when using buildVariants in a different context than CSS)
   values(
     cssOrFn: TCSSObject | BuildVariantsBuilderFn<TProps, TCSSObject>,
-    options?: IBuildVariantsMergerCssPartsOptions
+    options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this {
     return this.css(cssOrFn, options)
   }
@@ -82,7 +83,7 @@ export default class BuildVariantsBuilder<
     propName: keyof TProps,
     variant: Perhaps<TVariant>,
     cssDefinitions: Record<TVariant, TCSSObject>,
-    options?: IBuildVariantsMergerCssPartsOptions
+    options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this
 
   variant<TVariant extends boolean>(
@@ -93,14 +94,14 @@ export default class BuildVariantsBuilder<
       'true' | 'false',
       TCSSObject
     >,
-    options?: IBuildVariantsMergerCssPartsOptions
+    options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this
 
   variant<TVariant extends string>(
     propName: keyof TProps,
     variant: Perhaps<TVariant>,
     cssDefinitions: Record<TVariant, TCSSObject>,
-    options?: IBuildVariantsMergerCssPartsOptions
+    options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this {
     if (this._options.apply === false) {
       return this
@@ -113,6 +114,7 @@ export default class BuildVariantsBuilder<
     }
 
     return this._addCssPart(
+      propName,
       (cssDefinitions as Record<string, TCSSObject>)[String(variant)],
       options
     )
@@ -125,7 +127,7 @@ export default class BuildVariantsBuilder<
     propName: keyof TProps,
     variants: Perhaps<TVariant[]>,
     cssDefinitions: Record<TVariant, TCSSObject>,
-    options?: IBuildVariantsMergerCssPartsOptions
+    options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this {
     if (this._options.apply === false) {
       return this
@@ -138,7 +140,7 @@ export default class BuildVariantsBuilder<
     }
 
     variants.forEach(variant => {
-      this._addCssPart(cssDefinitions[variant], options)
+      this._addCssPart(propName, cssDefinitions[variant], options)
     })
 
     return this
@@ -171,7 +173,7 @@ export default class BuildVariantsBuilder<
       TVariant,
       BuildVariantsBuilderFn<TProps, TCSSObject>
     >,
-    options?: IBuildVariantsMergerCssPartsOptions
+    options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this {
     if (this._options.apply === false) {
       return this
@@ -202,7 +204,7 @@ export default class BuildVariantsBuilder<
       return this
     }
 
-    return this._addCssPart(composedCss[String(variant)], options)
+    return this._addCssPart(propName, composedCss[String(variant)], options)
   }
 
   /**
@@ -234,7 +236,7 @@ export default class BuildVariantsBuilder<
   if(
     apply: boolean | (() => boolean),
     fn: BuildVariantsBuilderFn<TProps, TCSSObject>,
-    options?: IBuildVariantsMergerCssPartsOptions
+    options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this {
     const applyValue = typeof apply === 'function' ? apply() : apply
 
@@ -243,7 +245,7 @@ export default class BuildVariantsBuilder<
       variantsDefinitions: this._allVariantsDefinitions
     })
 
-    return this._addCssPart(fn(builder), options)
+    return this._addCssPart(null, fn(builder), options)
   }
 
   /**
@@ -252,7 +254,7 @@ export default class BuildVariantsBuilder<
   get<TPropName extends keyof TProps>(
     propName: TPropName,
     variants: TProps[TPropName],
-    options?: IBuildVariantsMergerCssPartsOptions
+    options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this {
     if (this._options.apply === false) {
       return this
@@ -268,7 +270,7 @@ export default class BuildVariantsBuilder<
       const cssPart = variantDefinition.get(String(variant))
 
       if (cssPart) {
-        this._addCssPart(cssPart, options)
+        this._addCssPart(null, cssPart, options)
       }
     })
 
@@ -336,6 +338,7 @@ export default class BuildVariantsBuilder<
    * Add CSS part.
    */
   private _addCssPart(
+    propName: Maybe<keyof TProps>,
     css: MaybeUndef<TCSSObject>,
     options?: IBuildVariantsMergerCssPartsOptions
   ): this {
@@ -347,7 +350,12 @@ export default class BuildVariantsBuilder<
       return this
     }
 
-    this._cssMerger.add(css, options)
+    const isPrivate = propName?.toString().startsWith('_') === true
+
+    this._cssMerger.add(css, {
+      ...options,
+      _privateProp: isPrivate
+    })
 
     return this
   }

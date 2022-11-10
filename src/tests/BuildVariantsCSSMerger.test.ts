@@ -10,7 +10,8 @@ describe('BuildVariantsCSSMerger', () => {
           color: 'red'
         },
         options: {
-          weight: 0
+          weight: 0,
+          _privateProp: false
         }
       },
       {
@@ -19,7 +20,8 @@ describe('BuildVariantsCSSMerger', () => {
           background: 'silver'
         },
         options: {
-          weight: 0
+          weight: 0,
+          _privateProp: false
         }
       }
     ]
@@ -43,7 +45,8 @@ describe('BuildVariantsCSSMerger', () => {
           color: 'red'
         },
         options: {
-          weight: 10
+          weight: 10,
+          _privateProp: false
         }
       },
       {
@@ -52,7 +55,43 @@ describe('BuildVariantsCSSMerger', () => {
           background: 'silver'
         },
         options: {
-          weight: 0
+          weight: 0,
+          _privateProp: false
+        }
+      }
+    ]
+
+    const cssMerger = new BuildVariantsCSSMerger()
+
+    cssParts.forEach(cssPart => {
+      cssMerger.add(cssPart.cssObject, cssPart.options)
+    })
+
+    expect(cssMerger.end()).toEqual({
+      color: 'red',
+      background: 'silver'
+    })
+  })
+
+  it('should merge CSS of private props last', () => {
+    const cssParts: Array<IBuildVariantsMergerCssParts<CSSObject>> = [
+      {
+        cssObject: {
+          color: 'red'
+        },
+        options: {
+          weight: 0,
+          _privateProp: true
+        }
+      },
+      {
+        cssObject: {
+          color: 'lime',
+          background: 'silver'
+        },
+        options: {
+          weight: 0,
+          _privateProp: false
         }
       }
     ]
@@ -80,7 +119,8 @@ describe('BuildVariantsCSSMerger', () => {
           border: '1px solid black'
         },
         options: {
-          weight: 0
+          weight: 0,
+          _privateProp: false
         }
       },
       {
@@ -90,7 +130,8 @@ describe('BuildVariantsCSSMerger', () => {
           }
         },
         options: {
-          weight: 0
+          weight: 0,
+          _privateProp: false
         }
       }
     ]

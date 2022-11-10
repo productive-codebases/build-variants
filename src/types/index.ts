@@ -25,7 +25,15 @@ export interface IBuildVariantsBuilderOptions<
 
 export interface IBuildVariantsMergerCssPartsOptions {
   weight?: number
+  // is provided by a private variant
+  _privateProp?: boolean
 }
+
+// Public IBuildVariantsMergerCssPartsOptions interface, without _privateProp option
+export type BuildVariantsMergerCssPartsOptionsPublic = Omit<
+  IBuildVariantsMergerCssPartsOptions,
+  '_privateProp'
+>
 
 export interface IBuildVariantsMergerCssParts<TCSSObject extends object> {
   cssObject: TCSSObject

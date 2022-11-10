@@ -201,7 +201,7 @@ const Div = styled.div<Props>(props => {
 
     // The nice trick with `if` is that variants will be automatically "skipped"
     // from compound variants when being disabled.
-    // For example here, the color variant will not be applyed if used into
+    // For example here, the color variant will not be applied if used into
     // compoundVariant (see below).
     .if(
       false,
@@ -286,12 +286,12 @@ function ButtonComponent() {
   // the primary variant (blue) and in the first CSS block (white).
   background: 'silver',
 
-  // Get from the primary font variant, two variants applyed at the same time
+  // Get from the primary font variant, two variants applied at the same time
   fontWeight: 'bold',
   fontStyle: 'italic'
 
   // Get from the primary color variant
-  // (color:pink is not applyed because declared before the primary variant and
+  // (color:pink is not applied because declared before the primary variant and
   // no weight value has been set)
   color: 'white'
 }

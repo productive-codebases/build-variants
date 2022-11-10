@@ -155,6 +155,54 @@ describe('BuildVariantsBuilder', () => {
         textDecorationLine: 'underline'
       })
     })
+
+    describe('Private variants', () => {
+      it('should be applied last', () => {
+        interface ITextProps {
+          _color?: 'success' | 'error'
+          _weight?: 'lighter' | 'bolder'
+          variant?: 'success' | 'error'
+        }
+
+        const props: ITextProps = {
+          variant: 'success',
+          _color: 'error'
+        }
+
+        const css = testBuildVariants(props)
+          .variant('_color', props._color, {
+            success: {
+              color: 'green'
+            },
+
+            error: {
+              color: 'red'
+            }
+          })
+          .variant('_weight', props._weight, {
+            lighter: {
+              fontWeight: 'lighter'
+            },
+
+            bolder: {
+              fontWeight: 'bolder'
+            }
+          })
+          .compoundVariant('variant', props.variant, {
+            success: builder =>
+              builder.get('_color', 'success').get('_weight', 'lighter').end(),
+            error: builder =>
+              builder.get('_color', 'error').get('_weight', 'bolder').end()
+          })
+          .end()
+
+        expect(css).toEqual({
+          // should have color: red because of the private variant which overrides the compoundVariant's values
+          color: 'red',
+          fontWeight: 'lighter'
+        })
+      })
+    })
   })
 
   describe('variants()', () => {
@@ -772,6 +820,7 @@ describe('BuildVariantsBuilder', () => {
   })
 
   describe('With custom object shape', () => {
+    // This is no CSS! ... but it is working the same way!
     interface IAnimateObject {
       rotate?: number
       scale?: number
