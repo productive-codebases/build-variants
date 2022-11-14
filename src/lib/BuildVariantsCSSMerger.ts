@@ -18,6 +18,7 @@ export default class BuildVariantsCSSMerger<TCSSObject extends object> {
   ): this {
     const options: ObjectNonNullable<IBuildVariantsMergerCssPartsOptions> = {
       weight: 0,
+      _privateProp: false,
       ...options_
     }
 
@@ -51,15 +52,35 @@ export default class BuildVariantsCSSMerger<TCSSObject extends object> {
    */
 
   /**
-   * Deeply merge all CSS parts, optionally ordered by cssPart weight.
+   * Deeply merge all CSS parts, optionally ordered by weight or _privateProp.
    */
   private _merge(): TCSSObject {
-    const cssParts = Array.from(this._cssParts.values()).sort((a, b) => {
+    function sortByWeight(
+      a: IBuildVariantsMergerCssParts<TCSSObject>,
+      b: IBuildVariantsMergerCssParts<TCSSObject>
+    ) {
       // keep existing order if same weight
       if (a.options.weight === b.options.weight) {
         return 0
       }
+
       return a.options.weight > b.options.weight ? 1 : -1
+    }
+
+    function sortByPrivateProp(
+      a: IBuildVariantsMergerCssParts<TCSSObject>,
+      b: IBuildVariantsMergerCssParts<TCSSObject>
+    ) {
+      // keep existing order if same _privateProp
+      if (a.options._privateProp === b.options._privateProp) {
+        return 0
+      }
+
+      return a.options._privateProp > b.options._privateProp ? 1 : -1
+    }
+
+    const cssParts = Array.from(this._cssParts.values()).sort((a, b) => {
+      return sortByWeight(a, b) | sortByPrivateProp(a, b)
     })
 
     // deep merge all parts

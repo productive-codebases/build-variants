@@ -84,6 +84,32 @@ describe('BuildVariantsBuilder', () => {
   })
 
   describe('variant()', () => {
+    it('should not apply variant if the props value is undefined', () => {
+      interface IButtonProps {
+        type?: 'success' | 'error'
+      }
+
+      const props: IButtonProps = {}
+
+      const css = testBuildVariants(props)
+        .css({
+          color: 'white'
+        })
+        .variant('type', props.type, {
+          success: {
+            background: 'green'
+          },
+
+          error: {
+            background: 'red'
+          }
+        })
+        .end()
+
+      expect(css).toHaveProperty('color', 'white')
+      expect(css).not.toHaveProperty('background')
+    })
+
     it('should apply variant', () => {
       interface IButtonProps {
         type: 'default' | 'info' | 'success' | 'error'
@@ -129,9 +155,85 @@ describe('BuildVariantsBuilder', () => {
         textDecorationLine: 'underline'
       })
     })
+
+    describe('Private variants', () => {
+      it('should be applied last', () => {
+        interface ITextProps {
+          _color?: 'success' | 'error'
+          _weight?: 'lighter' | 'bolder'
+          variant?: 'success' | 'error'
+        }
+
+        const props: ITextProps = {
+          variant: 'success',
+          _color: 'error'
+        }
+
+        const css = testBuildVariants(props)
+          .variant('_color', props._color, {
+            success: {
+              color: 'green'
+            },
+
+            error: {
+              color: 'red'
+            }
+          })
+          .variant('_weight', props._weight, {
+            lighter: {
+              fontWeight: 'lighter'
+            },
+
+            bolder: {
+              fontWeight: 'bolder'
+            }
+          })
+          .compoundVariant('variant', props.variant, {
+            success: builder =>
+              builder.get('_color', 'success').get('_weight', 'lighter').end(),
+            error: builder =>
+              builder.get('_color', 'error').get('_weight', 'bolder').end()
+          })
+          .end()
+
+        expect(css).toEqual({
+          // should have color: red because of the private variant which overrides the compoundVariant's values
+          color: 'red',
+          fontWeight: 'lighter'
+        })
+      })
+    })
   })
 
   describe('variants()', () => {
+    it('should not apply variants if the props value is undefined', () => {
+      interface IButtonProps {
+        font?: Array<'strong' | 'underline' | 'italic'>
+      }
+
+      const props: IButtonProps = {}
+
+      const css = testBuildVariants(props)
+        .variants('font', props.font, {
+          strong: {
+            fontWeight: 'bold'
+          },
+
+          underline: {
+            textDecorationLine: 'underline'
+          },
+
+          italic: {
+            textDecoration: 'italic'
+          }
+        })
+        .end()
+
+      expect(css).not.toHaveProperty('fontWeight')
+      expect(css).not.toHaveProperty('textDecorationLine')
+      expect(css).not.toHaveProperty('textDecoration')
+    })
+
     it('should apply several variants', () => {
       interface IButtonProps {
         font: Array<'strong' | 'underline' | 'italic'>
@@ -220,6 +322,23 @@ describe('BuildVariantsBuilder', () => {
   })
 
   describe('compoundVariant()', () => {
+    it('should not apply if the props value is undefined', () => {
+      interface IButtonProps {
+        type?: 'success' | 'error'
+      }
+
+      const props: IButtonProps = {}
+
+      const css = testBuildVariants(props)
+        .compoundVariant('type', props.type, {
+          success: builder => builder.css({ color: 'green' }).end(),
+          error: builder => builder.css({ color: 'red' }).end()
+        })
+        .end()
+
+      expect(css).not.toHaveProperty('color')
+    })
+
     it('should compose variants from existing one', () => {
       interface IButtonProps {
         type?: 'default' | 'info' | 'success' | 'error'
@@ -378,6 +497,23 @@ describe('BuildVariantsBuilder', () => {
   })
 
   describe('compoundVariants()', () => {
+    it('should not apply if the props value is undefined', () => {
+      interface IButtonProps {
+        variants?: Array<'variant1' | 'variant2'>
+      }
+
+      const props: IButtonProps = {}
+
+      const css = testBuildVariants(props)
+        .compoundVariants('variants', props.variants, {
+          variant1: builder => builder.css({ color: 'blue' }).end(),
+          variant2: builder => builder.css({ color: 'red' }).end()
+        })
+        .end()
+
+      expect(css).not.toHaveProperty('color')
+    })
+
     it('should apply several compound variants', () => {
       interface IBoxProps {
         color?: 'unset' | 'red' | 'lime'
@@ -679,6 +815,75 @@ describe('BuildVariantsBuilder', () => {
         expect(css).toEqual({
           color: 'red'
         })
+      })
+    })
+  })
+
+  describe('With custom object shape', () => {
+    // This is no CSS! ... but it is working the same way!
+    interface IAnimateObject {
+      rotate?: number
+      scale?: number
+      x?: number
+      y?: number
+    }
+
+    function testBuildVariantsForCustomShapes<
+      TProps extends LitteralObject,
+      TAnimateObject extends LitteralObject = IAnimateObject
+    >(props: TProps) {
+      return newBuildVariants<TProps, TAnimateObject>(props)
+    }
+
+    it('should apply values', () => {
+      interface IButtonAnimateProps {
+        _rotate?: 'left' | 'right'
+        _scale?: 'small' | 'big'
+        variant?: 'alert' | 'modal'
+      }
+
+      const props: IButtonAnimateProps = {
+        variant: 'alert'
+      }
+
+      const css = testBuildVariantsForCustomShapes(props)
+        .values({
+          rotate: 0,
+          scale: 0,
+          x: 0,
+          y: 0
+        })
+        .variant('_rotate', props._rotate, {
+          left: {
+            rotate: -90
+          },
+
+          right: {
+            rotate: 90
+          }
+        })
+        .variant('_scale', props._scale, {
+          small: {
+            scale: 25
+          },
+
+          big: {
+            scale: 50
+          }
+        })
+        .compoundVariant('variant', props.variant, {
+          alert: builder =>
+            builder.get('_rotate', 'left').get('_scale', 'big').end(),
+          modal: builder =>
+            builder.get('_rotate', 'right').get('_scale', 'small').end()
+        })
+        .end()
+
+      expect(css).toEqual({
+        rotate: -90,
+        scale: 50,
+        x: 0,
+        y: 0
       })
     })
   })
