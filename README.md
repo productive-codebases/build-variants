@@ -1,12 +1,10 @@
 # Build-variants
 
-Single function to create, manage, compose variants, for any CSS-in-JS libraries.
-
+Declare and compose styles variants with ease.
 
 ## Motivation
 
 Before diving into the implementation details, you may want to read about [design considerations and motivation](#about-tokens-and-global-variants).
-
 
 ## Installation
 
@@ -19,7 +17,6 @@ npm install build-variants
 Typescript is not mandatory but highly recommended. Build-variants leverages a lot
 on Typescript generics and inference to provide types checking at every level.
 
-
 ## How to use
 
 ### Intanciate build-variants
@@ -31,7 +28,6 @@ To provide types checking for styles, you need to pass a type/interface to the
 build-variants' `newBuildVariants` function.
 
 Let's take an example with styled-components:
-
 
 ```ts
 import { newBuildVariants } from 'build-variants'
@@ -65,12 +61,10 @@ export function buildVariants<TProps extends object>(props: TProps) {
 }
 ```
 
-
 ### Decorate your components
 
 Now you can use your `buildVariants` function to build styles objects that will
 be passed to your styled function - most of the time.
-
 
 ```tsx
 import { buildVariants } from 'path/to/buildVariants'
@@ -307,8 +301,7 @@ It is a proposal to manage variants with a different level of visibility but the
 
 The interesting approach with private and public variants is that you and your consumers have maximum flexibility.
 
-Consumers are incited to use only public variants and it's recommended to communicate only on "official" and "public" variants  but if a custom specific need is required, consumers can use internal variants and customize the component as their needs. It's not recommended but sometimes, pragmatism is a good thing.
-
+Consumers are incited to use only public variants and it's recommended to communicate only on "official" and "public" variants but if a custom specific need is required, consumers can use internal variants and customize the component as their needs. It's not recommended but sometimes, pragmatism is a good thing.
 
 ### About variants versus props interpolation
 
@@ -323,7 +316,6 @@ Build-variants vision is more as:
 3. Optionally, compose your variants if you need more high-level behaviors (like a "primary" type that defines a bunch of styles like colors, background and borders for example).
 
 Build-variants provides both, a first-class variant API and props interpolation, allowing to define variants according to props values.
-
 
 ### About tokens
 
@@ -350,7 +342,6 @@ const StyledTextArea = styled.textarea(props => {
 })
 ```
 
-
 ### About global variants
 
 Instead of importing a function to inject styles, an another option could be to
@@ -360,7 +351,6 @@ and without having to define the "same" variant in various places.
 To do so, you could make use of the initial the initial `buildVariants` function
 that defines the type to use for styles. Just add some variants definitions here
 and expose an interface that you can use when styling your components.
-
 
 ```ts
 // Define an ExtendedStyledProps type that will extend TProps with some
@@ -414,6 +404,5 @@ const StyledTextArea = styled.textarea<
 // because already implemented in the `buildVariants` function.
 () => <StyledTextArea maxLength={50} font="monospace" value="Hello World" />
 ```
-
 
 Have fun building variants! :)
