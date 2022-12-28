@@ -4,22 +4,100 @@ Declare and compose styles variants with ease.
 
 ## Motivation
 
-Before diving into the implementation details, you may want to read about [design considerations and motivation](#about-tokens-and-global-variants).
+CSS-in-JS (Javascript that defines the styles of your components at runtime) is a very powerful technique but can be a source of a lot of complexity and duplication.
 
-## Installation
+Defining variants (the different variations of styles) of your components is also a touchy approach that requires a lot of attention to be simple, flexible, and meaningful for the developers that will use them.
 
-```bash
-npm install build-variants
-```
+`Build-variants` offers a clean, declarative, and type-safe API to organize the different variants of your components allowing better maintainability and flexibility in time.
 
 ## Prerequisites
 
 Typescript is not mandatory but highly recommended. Build-variants leverages a lot
 on Typescript generics and inference to provide types checking at every level.
 
-## How to use
+## Installation
 
-### Intanciate build-variants
+```bash
+npm install @productive-codebases/build-variants
+```
+
+## Core concepts
+
+At its core, `build-variants` is nothing more than a simple function that is building your styles definition according to the values of the component's props.
+
+`build-variants` doesn't do any assumptions about which CSS styles interface to use, meaning that you can declare and pass the CSS definitions of any libraries (generally `React.CSSProperties` in a React context) or even create your own.
+
+The API of `build-variants` allows to set CSS, declare variants and compound variants. Those later are a way to build new variants by combining existing variants.
+
+To ensure maximum flexibility, `build-variants` introduces the concept of private and public variants. Public variants are the ones that describe the "public" variants that your developers should use. Private variants can be used from time to time to override public variants for specific use cases.
+
+## Usage
+
+### Create your build-variants factory function
+
+To configure `build-variants` with your CSS interface, the simpler way is to create a small function that will return the `newBuildVariants` factory function by passing your CSS interface as a generic.
+
+```ts
+import { newBuildVariants } from "build-variants";
+import { CSSObject } from "styled-components";
+
+/**
+ * Return configured newBuildVariants with CSSOBject from styled-components.
+ */
+export function buildVariants<TProps extends object>(props: TProps) {
+  return newBuildVariants<TProps, CSSObject>(props);
+}
+```
+
+[See CodeSandbox](https://codesandbox.io/embed/build-variants-init-b5t24e?fontsize=14&hidenavigation=1&theme=dark)
+
+### Decorate a component
+
+To decorate your component, use your `buildVariants` factory function as it:
+
+```tsx
+import styled from "styled-components";
+import { buildVariants } from "./buildVariants";
+
+const Div = styled.div((props) => {
+  return buildVariants(props).end();
+});
+
+export default function Button() {
+  return <Div>My Button</Div>;
+}
+```
+
+[See CodeSandbox](https://codesandbox.io/embed/build-variants-init-b5t24e?fontsize=14&hidenavigation=1&theme=dark)
+
+### Add some CSS
+
+To add some CSS, proceed as it:
+
+```ts
+const Div = styled.div((props) => {
+  return buildVariants(props)
+    .css({
+      display: "inline-block",
+      background: "blue",
+      color: "white",
+      padding: "10px"
+    })
+    .end();
+});
+```
+
+[See CodeSandbox](https://codesandbox.io/embed/init-forked-0zmimn?fontsize=14&hidenavigation=1&theme=dark)
+
+### Declare props
+
+### Declare variants
+
+### Declare compound variants by composing with existing variants
+
+---
+
+### Instanciate build-variants
 
 In order to use build-variants with any CSS-in-JS librairies, build-variants does not
 provide a CSS interface by default, meaning that your styles objects can be anything.
