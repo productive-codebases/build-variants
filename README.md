@@ -1,419 +1,462 @@
 # Build-variants
 
-Single function to create, manage, compose variants, for any CSS-in-JS libraries.
-
+Declare and compose styles variants with ease.
 
 ## Motivation
 
-Before diving into the implementation details, you may want to read about [design considerations and motivation](#about-tokens-and-global-variants).
+CSS-in-JS (Javascript that applies the styles of your components at runtime) is a very powerful technique but is generally mixed into your components logic and is sometimes very combersome.
 
+Defining variants (the different variations of styles) of your components is also a touchy approach that requires a lot of attention to be simple, flexible and meaningful for the developers that will use them.
+
+`Build-variants` offers a clean, declarative, and type-safe API to organize the different variants of your components allowing better maintainability and flexibility in time.
+
+## Prerequisites
+
+Typescript is not mandatory but highly recommended. Build-variants leverages a lot on Typescript generics and inference to provide types checking at every level.
 
 ## Installation
 
 ```bash
-npm install build-variants
+npm install @productive-codebases/build-variants
 ```
 
-## Prerequisites
+## Core concepts
 
-Typescript is not mandatory but highly recommended. Build-variants leverages a lot
-on Typescript generics and inference to provide types checking at every level.
+At its core, `build-variants` is a tool that is building an object which can be styles or anything else according to the values of an object.
 
+Applied to web development, `build-variants` can be used to build styles object from components props.
 
-## How to use
+`build-variants` is **not** a CSS-in-JS library and don't manage styles. It is only **a builder** for your styles library.
 
-### Intanciate build-variants
+`Build-variants` is totally agnostic and has no dependencies on a specific web framework or styles library. It can be use to build styles, animations or objects of a totally different context. It's a versatile tool!
 
-In order to use build-variants with any CSS-in-JS librairies, build-variants does not
-provide a CSS interface by default, meaning that your styles objects can be anything.
+The API of `build-variants` exposes functions to add CSS (or `values` if we are in a different context), variant(s) and compound variant(s) which are variant(s) composed from existing ones.
 
-To provide types checking for styles, you need to pass a type/interface to the
-build-variants' `newBuildVariants` function.
+`Build-variants` introduces the concept of private and public variants, a way to differentiate the public interfaces from the intrinsic characteristics of your components.
 
-Let's take an example with styled-components:
+Both are exposed as standard props so developers can use public variants for the "official" use-cases but can still compose or override a defined behavior by using private variants.
 
+All those concepts provide the best maintainability and flexibility in the implementation of your variants.
+
+## Usage
+
+### Create your build-variants factory function
+
+As `build-variants` is totally agnostic, you have to specify which interface you want to use through `build-variants`.
+
+In the context of styles/CSS, you may use the interface exposed by the library of the framework you are using to decorate your components.
+
+Example with `styled-components`:
 
 ```ts
 import { newBuildVariants } from 'build-variants'
 import { CSSObject } from 'styled-components'
 
 /**
- * Create a build-variants instance, typed to use styled-components's `CSSObject`s.
+ * Return configured newBuildVariants with CSSObject from styled-components.
  */
 export function buildVariants<TProps extends object>(props: TProps) {
   return newBuildVariants<TProps, CSSObject>(props)
 }
 ```
 
-Note that you can use the interface you want. Consider using `React.CSSProperties`
-if you are doing raw React styles or your custom object definition:
+[See CodeSandbox example.](https://codesandbox.io/s/1-init-b5t24e?file=/src/buildVariants.ts)
 
-```ts
-import { newBuildVariants } from 'build-variants'
+### Decorate a component
 
-// build-variants typings will only tolerate styles with color and background properties!
-interface IMyStyles {
-  color: string
-  background: string
-}
+To decorate your component, use your own factory `buildVariants()` function when you are defining the styles of your component.
 
-/**
- * Create a build-variants instance, to use Partial<IMyStyles>
- */
-export function buildVariants<TProps extends object>(props: TProps) {
-  return newBuildVariants<TProps, Partial<IMyStyles>>(props)
+:warning: Please note that the library that you are using to apply styles needs to support object notation, as `build-variants` will return an object.
+
+```tsx
+import styled from 'styled-components'
+import { buildVariants } from './buildVariants'
+
+const Div = styled.div(props => {
+  return buildVariants(props).end()
+})
+
+export default function Button() {
+  return <Div>My Button</Div>
 }
 ```
 
+[See CodeSandbox example.](https://codesandbox.io/s/1-init-b5t24e?file=/src/Button.tsx)
 
-### Decorate your components
+### Add some CSS
 
-Now you can use your `buildVariants` function to build styles objects that will
-be passed to your styled function - most of the time.
+To add some CSS, proceed as it:
 
+```ts
+const Div = styled.div(props => {
+  return (
+    buildVariants(props)
+      .css({
+        display: 'inline-block',
+        padding: '10px'
+      })
+      // you can add as many blocks as you want
+      .css({
+        background: 'blue',
+        color: 'white'
+      })
+      .end()
+  )
+})
+```
+
+[See CodeSandbox example.](https://codesandbox.io/s/2-add-css-0zmimn?file=/src/Button.tsx)
+
+:arrow_right: If you are using `build-variants` in a different context than styles, you may prefer using the `value()` alias of `css()`.
+
+:arrow_right: See also how `build-variants` can be used for [global styles](https://codesandbox.io/s/add-css-0zmimn?file=/src/App.tsx) as well.
+
+### Declare variants
+
+#### Simple variant
+
+A variant is a characteristic of your component, for example the "type" of a button which could be "primary" or "secondary" and needs to be declared as a union of strings.
+
+`Build-variants` will ensure that all values of the union are declared as a property of the object used to describe the styles of the variant.
+
+At runtime, `build-variants` will return the styles that match the current props value.
+
+Example:
 
 ```tsx
-import { buildVariants } from 'path/to/buildVariants'
+import styled from 'styled-components'
+import { buildVariants } from './buildVariants'
 
-// Use here styled-components but you can used any CSS-in-JS library you want
-import { styled } from 'styled-components'
-
-// Define the interface of the props used by your component
-interface Props {
-  // Define a 'private' property for the button font color
-  _color?: 'default' | 'primary' | 'secondary'
-
-  // Define a 'private' property for the button background
-  _background?: 'default' | 'primary' | 'secondary'
-
-  // Define a 'private' property for font variants.
-  // This is an array, meaning that you can apply several values at once.
-  _font?: Array<'default' | 'bold' | 'italic'>,
-
-  // Define a 'private' property for a disabled state that is a boolean
-  _disabled?: boolean
-
-  // Finally, define a "public" variant
-  type?: 'default' | 'primary' | 'secondary'
+interface IButtonProps {
+  type: 'primary' | 'secondary'
 }
 
-// Style a div component by using styled-components here.
-const Div = styled.div<Props>(props => {
-  // Get a new instance of build-variant.
-  // Note that we use here `buildVariants()` defined in step 1 to be able to write
-  // CSS styles as styled-components' CSS objects.
-  return buildVariants(props)
-    // Add some CSS.
-    .css({
-      background: 'white'
-    })
+// Note how IButtonProps is passed here as a generic to type the props argument.
+// This construction may be different according to the styles library you are using.
+const Div = styled.div<IButtonProps>(props => {
+  return (
+    buildVariants(props)
+      .css({
+        display: 'inline-block',
+        padding: '10px'
+      })
+      // The first argument is the name of the prop and is used as a label inside
+      // build-variants. It's used when building compound variants.
 
-    // Add more CSS.
-    // You can add as many CSS blocks as you want.
-    .css({
-      '> button': {
-        all: 'unset'
-      }
-    })
+      // The second argument is the value of the variant used to "select" the correct
+      // styles definition. You may use props directly here.
 
-    // Implement CSS for each case of the color variant.
-    // Everything is typed checked here. You have to implement all cases of the
-    // union value.
-    // Note that because _color is optional, we have to default on a default value,
-    // here 'default', which is the first value of the union.
-    .variant('_color', props._color || 'default', {
-      default: {
-        // No color for the default case, it will be inherited from a parent
-      },
+      // The third argument is your styles definition.
+      .variant('type', props.type, {
+        primary: {
+          background: 'blue',
+          color: 'white'
+        },
+        secondary: {
+          background: 'silver',
+          color: 'black'
+        }
+      })
+      // The end() function means the end of your build declaration. It triggers the whole styles build by deeply merging the differents styles values and return the final object
+      .end()
+  )
+})
 
-      primary: {
-        color: 'white'
-      },
+export default function Button(props: IButtonProps) {
+  // `build-variants` needs to know the value of the `type` to apply the correct style.
+  // Thanks to the `IButtonProps` passed to the styled function, the type is now required
+  // and Typescript will ensure that all props are passed (if not declared as optional props).
+  return <Div type={props.type}>My Button</Div>
+}
+```
 
-      secondary: {
-        color: 'black'
-      }
-    })
+[See CodeSandbox example.](https://codesandbox.io/s/3-add-variant-9b3bvh?file=/src/Button.tsx)
 
-    // Same thing with the background variant
-    .variant('_background', props._background || 'default', {
-      default: {
-        // No background override.
-        // As we have define a background in the first CSS block, we should have
-        // a background: white at the end.
-      },
+#### Multiple variants
 
-      primary: {
-        background: 'blue'
-      },
+A variant can be multiple meaning that different values of a same variant can be applied at the same time. It's pretty useful for a font that can be strong and green for example...
 
-      secondary: {
-        background: 'white'
-      }
-    })
+Consider this example:
 
-    // Same thing with the font variant.
-    // Note that we use `variant*s*` to manipulate an array of unions.
-    .variants('_font', props._font || [], {
-      default: {
-        // Inherits from the parent
-      },
+```tsx
+interface IButtonProps {
+  type: 'primary' | 'secondary'
+  // Declare an array of union values
+  text?: Array<'strong' | 'success' | 'error'>
+}
 
-      bold: {
-        fontWeight: 'bold'
-      },
+const Div = styled.div<IButtonProps>(props => {
+  return (
+    buildVariants(props)
+      .css({
+        display: 'inline-block',
+        padding: '10px'
+      })
+      .variant('type', props.type, {
+        primary: {
+          background: 'blue',
+          color: 'white'
+        },
+        secondary: {
+          background: 'silver',
+          color: 'black'
+        }
+      })
+      // The variants() function is working exactly the same than variant(), expect that it requires an array of values.
+      // Build-variants will apply the styles definition of each value of the array.
+      .variants('text', props.text, {
+        strong: {
+          fontWeight: 'bold'
+        },
+        success: {
+          color: 'green'
+        },
+        error: {
+          color: 'red'
+        }
+      })
+      .end()
+  )
+})
+```
 
-      italic: {
-        fontStyle: 'italic'
-      }
-    })
+```tsx
+// Here an example to render a primary button with bolded red text
+<Button type="primary" text={['strong', 'error']} />
+```
 
-    // Same thing with the disabled variant which is a boolean.
-    // Therefore we need to define the true and false cases.
-    .variant('_disabled', props._disabled || [], {
-      true: {
-        background: 'silver'
-      },
+[See CodeSandbox example.](https://codesandbox.io/s/4-multiple-variants-v9bxds?file=/src/Button.tsx)
 
-      false: {
-        // Nothing is not disabled
-      }
-    }, {
-      // When the button is disabled, we want that the background:silver takes
-      // the precedence over all other backgrounds rules.
-      // So you can use the `weight` option to ponderate your CSS definition(s).
-      // Weight is also available for variant(s), compoundVariant(s) and if blocks.
-      weight: 10
-    })
+### Declare compound variants by composing with existing variants
 
-    // You can conditionate any CSS or variant definition by using `if()` block.
-    .if(
-      // Implement the predicate function here to have a pink color in your button
-      true    // OR `props.variants?.include('fancy') === true,
-      builder => {
-        return builder
-          .css({
-            color: 'pink'
+For more complex components, `build-variants` offers a composition API used to create variants from the ones previouly defined.
+
+The public and private variants are a naming convention but work as any other property from a React perspective. However, the usage of both are different.
+
+Private variants should be considered as the intrinsic properties of your components, used to build the public variants that should be considered as the public interface of your component.
+
+For example, private variants may be background and color properties whereas public variant can be a type "primary" or "secondary" composed from a defined value of background and color.
+
+Private variants need to start with an underscore and have the prevalence in the order of application by `build-variants`. The idea is to use public variants first, but for some edge cases where specific properties need to be overridden, it's possible to use a private variant.
+
+Let's start by updating our component signature by exposing private and public variants. See how public variants are composed from private ones:
+
+```tsx
+interface IButtonProps {
+  // define the private variants that will be used to compose your public variants
+  _background?: 'primary' | 'secondary' | 'success' | 'error'
+  _text?: Array<'dark' | 'light' | 'success' | 'error' | 'strong'>
+  // define public variants that developpers should use
+  type: 'primary' | 'secondary' | 'success' | 'error'
+  children: string
+}
+
+const Div = styled.div<IButtonProps>(props => {
+  return (
+    buildVariants(props)
+      .css({
+        display: 'inline-block',
+        padding: '10px'
+      })
+      // Private variants need to be defined first in order to be reused in your compound variants definitions
+      .variant('_background', props._background, {
+        primary: {
+          background: 'blue'
+        },
+        secondary: {
+          background: 'silver'
+        },
+        success: {
+          background: '#eaff96'
+        },
+        error: {
+          background: '#ffdbdb'
+        }
+      })
+      .variants('_text', props._text, {
+        dark: {
+          color: 'black'
+        },
+        light: {
+          color: 'white'
+        },
+        success: {
+          color: 'green'
+        },
+        error: {
+          color: 'red'
+        },
+        strong: {
+          fontWeight: 'bold'
+        }
+      })
+      // Define compound variants by composing with your private variants
+      .compoundVariant('type', props.type, {
+        primary: builder_ =>
+          builder_.get('_background', 'primary').get('_text', ['light']).end(),
+        secondary: builder_ =>
+          builder_.get('_background', 'secondary').get('_text', ['dark']).end(),
+        success: builder_ =>
+          builder_
+            .get('_background', 'success')
+            .get('_text', ['success'])
+            .end(),
+        error: builder_ =>
+          builder_
+            .get('_background', 'error')
+            .get('_text', ['error', 'strong'])
+            // Note that the builder_ instance offers the same full API, so css() function is available here as well
+            .css({
+              border: '1px solid red'
+            })
+            .end()
+      })
+      .end()
+  )
+})
+```
+
+Usage:
+
+```tsx
+<Button type="primary">Primary button</Button>
+<Button type="secondary">Secondary button</Button>
+<Button type="success">Success button</Button>
+<Button type="error">Error button</Button>
+```
+
+[See Codesandox example.](https://codesandbox.io/s/5-variants-composition-m6b5zs?file=/src/Button.tsx)
+
+Note that `compoundVariants()` is also available and allows to apply multiple compound variants.
+
+### Use private variants to override public ones
+
+As mentioned in the previous section, private variants (props starting with an underscore) can be used to override public variants definitions, allowing to keep a maximum of flexibility.
+
+For example, if a very specific use-case is not covered by the Button public variant, it is possible to override a (private) behavior of our component.
+
+Example:
+
+```tsx
+<Button type="error">Error button</Button>
+
+<Button type="error" _background="success">
+  Error button with success background
+</Button>
+```
+
+[See CodeSandbox example.](https://codesandbox.io/s/overrides-with-private-variants-w72ed1?file=/src/App.tsx)
+
+The more granular your variants, the more flexible your component API. By having a few style definitions applied for each private variant, you can compose your different public variants more precisely while offering the maximum flexibility in the use of your component.
+
+### Condition blocks
+
+If you want to disable an entire block (`css()`, `variant()`...), you can use the `if()` function.
+
+The main advantage is that you can condition a whole block easily without modifying the rest of your variants composition.
+
+Example:
+
+```tsx
+const Div = styled.div<IButtonProps>(props => {
+  return (
+    buildVariants(props)
+      // ...
+      // Deactivate the _text variant according to the applyTextVariant prop
+      .if(props.applyTextVariant === true, builder_ => {
+        return builder_
+          .variants('_text', props._text, {
+            dark: {
+              color: 'black'
+            },
+            light: {
+              color: 'white'
+            },
+            success: {
+              color: 'green'
+            },
+            error: {
+              color: 'red'
+            },
+            strong: {
+              fontWeight: 'bold'
+            }
           })
           .end()
-      }
-    )
-
-    // The nice trick with `if` is that variants will be automatically "skipped"
-    // from compound variants when being disabled.
-    // For example here, the color variant will not be applied if used into
-    // compoundVariant (see below).
-    .if(
-      false,
-      builder => {
-        return builder
-          .variant('_color', props._color || 'default', {
-             // ...
-          }
-          .end()
-      }
-    )
-
-    // Now, compose with your 'private' variants
-    .compoundVariant('type', props.type || 'default', {
-      // When composing, we get a new instance of the builder to get existing
-      // private variants definitions.
-      // Final `end()` function merges all CSS definitions get from the composition.
-      // Here we don't want to style the default case, so we directly call the
-      // end function.
-      default: builder => builder.end()
-
-      // Here we define the type=primary variant from existing color, background
-      // and font variants.
-      // In this example, we use two definitions for the font variant. So the font
-      // will be bold and italic.
-      primary: builder => builder
-        .get('_color', 'primary')
-        .get('_background', 'primary')
-        .get('_font', ['bold', 'italic'])
-        .end(),
-
-      // In the same way, compose to define type=secondary variant.
-      secondary: builder => builder
-        .get('_color', 'secondary')
-        .get('_background', 'secondary')
-        .get('_font', ['bold', 'italic'])
-
-        // Not recommanded but you have the full API of the builder available here.
-        // So you can create new CSS or variant(s) of event compoundVariant(s) in this
-        // compoundVariant definition!
-        // .css({
-        //   background: 'white'
-        // })
-
-        .end()
-    })
-
-    // You can also compose with an array of compoundVariant by using compoundVariants:
-    // .compoundVariants('types', props.types || [], {
-    //   ...
-    // })
-
-    // If you have some issues and unexpected CSS applied, you may want debug things
-    // so you can use `debug()` function that will log props, variants, CSS parts and
-    // final merged CSS object.
-    .debug()
-
-    // Finally, merge all CSS definitions and variants.
-    // End function will return a CSS object.
-    .end()
-})
-
-// Create a component and render a disabled "primary" button.
-function ButtonComponent() {
-  return (
-    <Div type="primary" disabled>
-      <button>Button</button>
-    </Div>
+      })
+      .compoundVariant('type', props.type, {
+        // ...
+      })
+      .end()
   )
-}
-
-/* CSS is going to be:
-
-{
-  // Get from the first CSS block
-  '> button': {
-    all: 'unset'
-  },
-
-  // Get the background set in the disabled variant. And because we added a weight
-  // option, the background:silver takes the precedence over backgrounds set in
-  // the primary variant (blue) and in the first CSS block (white).
-  background: 'silver',
-
-  // Get from the primary font variant, two variants applied at the same time
-  fontWeight: 'bold',
-  fontStyle: 'italic'
-
-  // Get from the primary color variant
-  // (color:pink is not applied because declared before the primary variant and
-  // no weight value has been set)
-  color: 'white'
-}
-
-*/
-```
-
-## Design considerations
-
-### About private and public variants
-
-It is a proposal to manage variants with a different level of visibility but there is no obligation at all to follow this pattern.
-
-The interesting approach with private and public variants is that you and your consumers have maximum flexibility.
-
-Consumers are incited to use only public variants and it's recommended to communicate only on "official" and "public" variants  but if a custom specific need is required, consumers can use internal variants and customize the component as their needs. It's not recommended but sometimes, pragmatism is a good thing.
-
-
-### About variants versus props interpolation
-
-Variants is something relatively new in CSS-in-JS world that libraries like Stitches have made popular by adding first-class variant API support.
-
-Stitches advocates [variants design instead of props interpolation)(https://stitches.dev/blog/migrating-from-emotion-to-stitches), meaning that variants are defined directly during the styles implementation, by infering definitions. It quicky adds complexity when it comes to extracting those variants in order to reuse them in another contexts. More generally, not having clear interfaces is rarely a good idea.
-
-Build-variants vision is more as:
-
-1. First, define clear interfaces for your components,
-2. Secondly, implement your interface by defining CSS and variants,
-3. Optionally, compose your variants if you need more high-level behaviors (like a "primary" type that defines a bunch of styles like colors, background and borders for example).
-
-Build-variants provides both, a first-class variant API and props interpolation, allowing to define variants according to props values.
-
-
-### About tokens
-
-[Tokens](https://stitches.dev/docs/tokens) (strings) could be seen as a handly way to create shortcuts for complex styles definitions. But you should consider as well the drawbacks of using simple strings that can't reference the source of the implementation in addition that adding more and more aliases of styles may obfuscate a bit which styles are really applied in the end.
-
-For values, you may want to consider importing directly what you need. If you need a custom set of styles, you can create a function and invoke it directly in styles definition.
-
-```tsx
-function monospaceFontStyles(): CSSObject {
-  return {
-    fontFamily: 'monospace',
-    letterSpacing: '1em',
-    fontWeight: 500
-  }
-}
-
-const StyledTextArea = styled.textarea(props => {
-  return buildVariants(props)
-    .css({
-      color: 'black',
-      ...monospaceFontStyles()
-    })
-    .end()
 })
 ```
 
+In this example, only the styles of the text is applyed according to the `applyTextVariant` prop, the rest (padding, background, border) is still applied.
 
-### About global variants
+:warning: Be careful to use the `builder_` instance returned by the `if` function.
 
-Instead of importing a function to inject styles, an another option could be to
-define kind of global variants used to apply styles without having to import things
-and without having to define the "same" variant in various places.
+[See CodeSandbox example.](https://codesandbox.io/s/7-condition-blocks-0xko7x?file=/src/Button.tsx)
 
-To do so, you could make use of the initial the initial `buildVariants` function
-that defines the type to use for styles. Just add some variants definitions here
-and expose an interface that you can use when styling your components.
+### Blocks weight
 
+Blocks are applied in the order of the declaration meaning that a `color` defined in a first `css` block would be overridden by a `color` applied lastly in a variant or compound variant definition.
+
+`Build-variants` offers a way to add a weight to each block so that you can force some style directives to be applied in a defined order regardless of its declaration position.
+
+Example:
 
 ```ts
-// Define an ExtendedStyledProps type that will extend TProps with some
-// default variants. Here we define a "font" variant.
-export type ExtendedStyledProps<TProps extends object> = TProps & {
-  font?: 'default' | 'monospace'
-}
-
-export function buildVariants<
-  TProps extends object,
-  // Create a generic that extends ExtendedStyledProps<TProps>, used to type props.
-  TExtendedProps extends ExtendedStyledProps<TProps>
->(props: TExtendedProps) {
-  return newBuildVariants<TExtendedProps, CSSObject>(props).variant(
-    // use the props name as the variant label
-    'font',
-    // add a default fallback since "font" value can be optional
-    props.font || 'default',
-    // finally, implement the union values
-    {
-      default: {
-        //
-      },
-
-      monospace: {
-        fontFamily: 'monospace',
-        letterSpacing: '0.1em',
-        fontWeight: 5000
-      }
-    }
-  )
-}
-```
-
-Now, when styling a component, you can use the extended interface to expose the
-global variants:
-
-```tsx
-const StyledTextArea = styled.textarea<
-  // Type your typearea props as an ExtendedStyledProps<T> interface
-  ExtendedStyledProps<HTMLAttributes<HTMLTextAreaElement>>
->(props => {
+const Div = styled.div<IButtonProps>(props => {
   return buildVariants(props)
     .css({
-      color: 'black'
+      display: 'inline-block',
+      padding: '10px'
+    })
+    .css(
+      {
+        color: 'silver'
+      },
+      {
+        // `color: silver` applied lastly thanks to its weight (0 by default),
+        // so the final color of the button text will be `silver`.
+        weight: 10
+      }
+    )
+    .variants('_text', props._text, {
+      dark: {
+        color: 'black'
+      }
+      // ...
     })
     .end()
 })
-
-// "font" property is now available without having the need to define the variant,
-// because already implemented in the `buildVariants` function.
-() => <StyledTextArea maxLength={50} font="monospace" value="Hello World" />
 ```
 
+The `weight` option is available for css, variant(s) and compoundVariant(s).
 
-Have fun building variants! :)
+[See CodeSandbox example.](https://codesandbox.io/s/8-blocks-weight-d0fbz3?file=/src/Button.tsx)
+
+### Debugging
+
+On complex components, you may encounter issues to understand which styles are really applied by `build-variants`. A `debug()` function is available to log `build-variants` internals and final applied styles.
+
+Example:
+
+```tsx
+const Div = styled.div<IButtonProps>(props => {
+  return (
+    buildVariants(props)
+      // ...
+      // Enable console debugging
+      .debug()
+      .end()
+  )
+})
+```
+
+Now in the browser console, you get some logs that shoud help to understand which styles are applied:
+
+![build-variants debugging](https://user-images.githubusercontent.com/446128/209950582-d7a7faf0-a496-4e3e-8469-d298ac09016b.png)
+
+[See CodeSandbox example.](https://codesandbox.io/s/9-debug-f6ozbu?file=/src/Button.tsx:463-2386)
