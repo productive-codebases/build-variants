@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.3.0 (2023-01-04)
+
+### Added
+
+- Predicate on the `debug()` function allowing to limit debugging for specific use-cases.
+
+### Updated
+
+- Rewrite all the README with step-by-step explanations and Codesandboxes examples.
+
 ## v1.2.0 (2022-11-14)
 
 ### Changed
