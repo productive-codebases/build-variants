@@ -304,7 +304,17 @@ export default class BuildVariantsBuilder<
   /**
    * Print privates for debugging.
    */
-  debug(): this {
+  debug(apply?: boolean | (() => boolean)): this {
+    const displayDebug = isDefined(apply)
+      ? typeof apply === 'function'
+        ? apply()
+        : apply
+      : true
+
+    if (!displayDebug) {
+      return this
+    }
+
     logger.debug('Props:', this._props)
     logger.debug('Variants:', this._allVariantsDefinitions)
     this._cssMerger.debug()
