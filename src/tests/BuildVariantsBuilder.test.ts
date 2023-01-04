@@ -1,6 +1,7 @@
 import { CSSObject } from 'styled-components'
 import { newBuildVariants } from '../lib/newBuildVariants'
 import { LitteralObject } from '../types'
+import { logger } from '../helpers/logger'
 
 describe('BuildVariantsBuilder', () => {
   function testBuildVariants<
@@ -885,6 +886,95 @@ describe('BuildVariantsBuilder', () => {
         x: 0,
         y: 0
       })
+    })
+  })
+
+  describe('debug()', () => {
+    let loggerSpy: jest.SpyInstance<
+      void,
+      [message?: any, ...optionalParams: any[]]
+    >
+
+    beforeEach(() => {
+      loggerSpy = jest.spyOn(logger, 'debug').mockReturnThis()
+    })
+
+    afterEach(() => {
+      loggerSpy.mockReset()
+    })
+
+    it('should display debug info', () => {
+      interface IButtonProps {
+        type?: 'success' | 'error'
+      }
+
+      const props: IButtonProps = {
+        type: 'success'
+      }
+
+      testBuildVariants(props)
+        .css({
+          color: 'white'
+        })
+        .variant('type', props.type, {
+          success: {
+            background: 'green'
+          },
+
+          error: {
+            background: 'red'
+          }
+        })
+        .debug()
+        .end()
+
+      expect(loggerSpy).toHaveBeenNthCalledWith(1, 'Props:', {
+        type: 'success'
+      })
+
+      expect(loggerSpy).toHaveBeenNthCalledWith(
+        2,
+        'Variants:',
+        new Map([
+          [
+            'type',
+            new Map([
+              ['success', { background: 'green' }],
+              ['error', { background: 'red' }]
+            ])
+          ]
+        ])
+      )
+
+      expect(loggerSpy).toHaveBeenNthCalledWith(
+        3,
+        'CSS parts:',
+        new Set([
+          {
+            cssObject: { color: 'white' },
+            options: { _privateProp: false, weight: 0 }
+          },
+          {
+            cssObject: { background: 'green' },
+            options: { _privateProp: false, weight: 0 }
+          }
+        ])
+      )
+
+      expect(loggerSpy).toHaveBeenNthCalledWith(4, 'CSS:', {
+        background: 'green',
+        color: 'white'
+      })
+    })
+
+    it('should not display debug info if the predicate is false', () => {
+      testBuildVariants({}).debug(false).end()
+
+      testBuildVariants({})
+        .debug(() => false)
+        .end()
+
+      expect(loggerSpy).not.toBeCalled()
     })
   })
 })
