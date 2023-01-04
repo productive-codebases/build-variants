@@ -448,12 +448,36 @@ const Div = styled.div<IButtonProps>(props => {
   return (
     buildVariants(props)
       // ...
+
       // Enable console debugging
       .debug()
       .end()
   )
 })
 ```
+
+Note that the `debug` function accepts an optional predicate (boolean) value to enable or disable debugging. It is particularly useful to limit the logs to a specific use case.
+
+Example:
+
+```tsx
+interface IButtonProps {
+  // ...
+  debug?: boolean
+}
+
+const Div = styled.div<IButtonProps>(props => {
+  return (
+    buildVariants(props)
+      // ...
+
+      // Enable console debugging only if the debug props has been passed to the component
+      .debug(props.debug === true)
+      .end()
+  )
+})
+```
+
 
 Now in the browser console, you get some logs that shoud help to understand which styles are applied:
 
