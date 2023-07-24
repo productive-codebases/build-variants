@@ -1,6 +1,6 @@
-import { CSSObject } from 'styled-components'
 import BuildVariantsCSSMerger from '../lib/BuildVariantsCSSMerger'
 import { IBuildVariantsMergerCssParts } from '../types'
+import { CSSObject } from '../types/cssObject'
 
 describe('BuildVariantsCSSMerger', () => {
   it('should merge CSS', () => {

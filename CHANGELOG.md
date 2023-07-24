@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.0 (2023-07-24)
+
+### Added
+
+- Update all npm dependencies, including styled-components v6 for testing.
+- Export `CSSObject` (equivalent of styled-components v5's one)
+
 ## v1.3.0 (2023-01-04)
 
 ### Added

@@ -1,7 +1,7 @@
-import { CSSObject } from 'styled-components'
+import { logger } from '../helpers/logger'
 import { newBuildVariants } from '../lib/newBuildVariants'
 import { LitteralObject } from '../types'
-import { logger } from '../helpers/logger'
+import { CSSObject } from '../types/cssObject'
 
 describe('BuildVariantsBuilder', () => {
   function testBuildVariants<
