@@ -1,7 +1,7 @@
+import { CSSObject } from '@emotion/styled'
 import { logger } from '../helpers/logger'
 import { newBuildVariants } from '../lib/newBuildVariants'
 import { LitteralObject } from '../types'
-import { CSSObject } from '../types/cssObject'
 
 describe('BuildVariantsBuilder', () => {
   function testBuildVariants<

@@ -1,5 +1,5 @@
+import { CSSObject } from '@emotion/styled'
 import { newBuildVariants } from '../lib/newBuildVariants'
-import { CSSObject } from '../types/cssObject'
 
 describe('BuildVariantsBuilder-Button', () => {
   function testBuildVariants<TProps extends object>(props: TProps) {
