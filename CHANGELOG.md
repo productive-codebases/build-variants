@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.0 (2024-03-09)
+
+### Added
+
+- Accept styles directly as the second argument on conditions.
+
 ## v1.4.0 (2023-07-24)
 
 ### Added

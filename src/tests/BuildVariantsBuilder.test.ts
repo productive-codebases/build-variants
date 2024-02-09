@@ -313,11 +313,15 @@ describe('BuildVariantsBuilder', () => {
               .end()
           }
         )
+        .if(true, {
+          border: '1px solid red'
+        })
         .end()
 
       expect(css).toEqual({
         color: 'silver',
-        background: 'lime'
+        background: 'lime',
+        border: '1px solid red'
       })
     })
   })
