@@ -235,7 +235,7 @@ export default class BuildVariantsBuilder<
    */
   if(
     apply: boolean | (() => boolean),
-    fn: BuildVariantsBuilderFn<TProps, TCSSObject>,
+    cssOrFn: TCSSObject | BuildVariantsBuilderFn<TProps, TCSSObject>,
     options?: BuildVariantsMergerCssPartsOptionsPublic
   ): this {
     const applyValue = typeof apply === 'function' ? apply() : apply
@@ -245,7 +245,9 @@ export default class BuildVariantsBuilder<
       variantsDefinitions: this._allVariantsDefinitions
     })
 
-    return this._addCssPart(null, fn(builder), options)
+    const cssPart = typeof cssOrFn === 'function' ? cssOrFn(builder) : cssOrFn
+
+    return this._addCssPart(null, cssPart, options)
   }
 
   /**
