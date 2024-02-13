@@ -245,9 +245,17 @@ export default class BuildVariantsBuilder<
       variantsDefinitions: this._allVariantsDefinitions
     })
 
-    const cssPart = typeof cssOrFn === 'function' ? cssOrFn(builder) : cssOrFn
+    // pass the builder instance
+    if (typeof cssOrFn === 'function') {
+      return this._addCssPart(null, cssOrFn(builder), options)
+    }
 
-    return this._addCssPart(null, cssPart, options)
+    // pass raw object directly
+    if (apply) {
+      return this._addCssPart(null, cssOrFn, options)
+    }
+
+    return this
   }
 
   /**

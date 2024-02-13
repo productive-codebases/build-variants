@@ -278,6 +278,7 @@ describe('BuildVariantsBuilder', () => {
       }
 
       const css = testBuildVariants(props)
+        // should be not applied
         .if(false, builder_ => {
           return builder_
             .css({
@@ -294,6 +295,7 @@ describe('BuildVariantsBuilder', () => {
             })
             .end()
         })
+        // should be applyed
         .if(
           () => true,
           builder_ => {
@@ -303,16 +305,29 @@ describe('BuildVariantsBuilder', () => {
               })
               .variant('type', props.type, {
                 success: {
-                  background: 'lime'
+                  textDecoration: 'underline'
                 },
 
-                error: {
-                  background: 'orange'
-                }
+                error: {}
+              })
+              .compoundVariant('type', props.type, {
+                success: builder_ =>
+                  builder_
+                    // should not be applied because defined in a if(false) block
+                    .get('type', 'success')
+                    // should be applied
+                    .css({ fontWeight: 'bold' })
+                    .end(),
+                error: builder_ => builder_.get('type', 'error').end()
               })
               .end()
           }
         )
+        // should not be applyed
+        .if(false, {
+          fontSize: '16px'
+        })
+        // should be applyed
         .if(true, {
           border: '1px solid red'
         })
@@ -320,7 +335,8 @@ describe('BuildVariantsBuilder', () => {
 
       expect(css).toEqual({
         color: 'silver',
-        background: 'lime',
+        textDecoration: 'underline',
+        fontWeight: 'bold',
         border: '1px solid red'
       })
     })
@@ -722,7 +738,7 @@ describe('BuildVariantsBuilder', () => {
     describe('css()', () => {
       it('should apply css according weight', () => {
         const css = testBuildVariants({})
-          // should be applyied because using a weight
+          // should be applied because using a weight
           .css(
             {
               color: 'red',
