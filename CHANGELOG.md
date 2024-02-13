@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.1 (2024-03-13)
+
+### Fixed
+
+- Fix styles application when using raw styles in a `if` block.
+
 ## v1.5.0 (2024-03-09)
 
 ### Added
