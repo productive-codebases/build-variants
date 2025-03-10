@@ -1,4 +1,4 @@
-import { ObjectNonNullable } from './helpers'
+import type { ObjectNonNullable } from './helpers'
 
 export type LitteralObject = object
 

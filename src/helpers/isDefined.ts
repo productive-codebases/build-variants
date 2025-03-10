@@ -1,4 +1,4 @@
-import { Perhaps } from '../types/helpers'
+import type { Perhaps } from '../types/helpers'
 
 /**
  * Returns a type predicate to filter undefined values of an array.

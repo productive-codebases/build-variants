@@ -1,4 +1,4 @@
-import { LitteralObject } from '../types'
+import type { LitteralObject } from '../types'
 import BuildVariantsBuilder from './BuildVariantsBuilder'
 
 /**
