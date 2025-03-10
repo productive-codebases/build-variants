@@ -33,5 +33,6 @@
   },
   "peerDependencies": {
     "lodash.mergewith": "^4.6.2"
-  }
+  },
+  "dependencies": {}
 }
