@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.2 (2024-03-10)
+
+### Changed
+
+- Improve README.
+
 ## v1.5.1 (2024-03-13)
 
 ### Fixed
