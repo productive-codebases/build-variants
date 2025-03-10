@@ -1,6 +1,6 @@
 {
   "name": "@productive-codebases/build-variants",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Declare and compose styles variants with ease.",
   "author": "Alexis MINEAUD",
   "license": "MIT",
