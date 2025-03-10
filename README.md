@@ -26,14 +26,14 @@ Configure **build-variants** with your styling engine. For example, with _styled
 
 ```ts
 import type { CSSObject } from '@emotion/react'
-import { newBuildVariants } from 'build-variants'
+import { newBuildVariants } from '@productive-codebases/build-variants'
 
 export function buildVariants<TProps extends object>(props: TProps) {
   return newBuildVariants<TProps, CSSObject>(props)
 }
 ```
 
-*This sets up a function that accepts props and returns a builder configured for styled-components.*
+*This sets up a function that accepts props and returns a builder configured for CSSObject objects.*
 
 ---
 

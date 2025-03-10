@@ -1,4 +1,4 @@
-import { LitteralObject } from '../types'
+import type { LitteralObject } from '../types'
 import BuildVariantsBuilder from './BuildVariantsBuilder'
 
 /**
@@ -8,7 +8,7 @@ import BuildVariantsBuilder from './BuildVariantsBuilder'
  * Usage:
  *
  * const Div = styled.div<ITestProps>(props => {
- *   return styleVariants(props, builder => {
+ *   return buildVariants(props, builder => {
  *     return builder
  *       .css({
  *         color: 'red'

@@ -1,14 +1,14 @@
 import { ensureArray } from '../helpers/ensureArray'
 import { isDefined } from '../helpers/isDefined'
 import { logger } from '../helpers/logger'
-import {
+import type {
   BuildVariantsMergerCssPartsOptionsPublic,
   IBuildVariantsBuilderOptions,
   IBuildVariantsMergerCssPartsOptions,
   LitteralObject,
   PropsVariantsDefinitions
 } from '../types'
-import { Maybe, MaybeUndef, Perhaps } from '../types/helpers'
+import type { Maybe, MaybeUndef, Perhaps } from '../types/helpers'
 import BuildVariantsCSSMerger from './BuildVariantsCSSMerger'
 
 type BuildVariantsBuilderFn<
@@ -190,10 +190,9 @@ export default class BuildVariantsBuilder<
           })
         )
 
-        return {
-          ...acc,
-          [variant_]: css
-        }
+        acc[variant_] = css
+
+        return acc
       },
       {} as Record<string, TCSSObject>
     )

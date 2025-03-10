@@ -1,7 +1,7 @@
 import { logger } from '../helpers/logger'
 import { newBuildVariants } from '../lib/newBuildVariants'
-import { LitteralObject } from '../types'
-import { CSSObject } from '../types/cssObject'
+import type { LitteralObject } from '../types'
+import type { CSSObject } from '../types/cssObject'
 
 describe('BuildVariantsBuilder', () => {
   function testBuildVariants<
@@ -638,6 +638,7 @@ describe('BuildVariantsBuilder', () => {
         $debug?: 'true' | 'false'
       }
 
+      // biome-ignore lint/complexity/noBannedTypes: <explanation>
       const css = testBuildVariants<{}, CustomCSSObject>({})
         .css({
           $debug: 'true',

@@ -1,10 +1,10 @@
 import { deepMerge } from '../helpers/deepMerge'
 import { logger } from '../helpers/logger'
-import {
+import type {
   IBuildVariantsMergerCssParts,
   IBuildVariantsMergerCssPartsOptions
 } from '../types'
-import { ObjectNonNullable } from '../types/helpers'
+import type { ObjectNonNullable } from '../types/helpers'
 
 export default class BuildVariantsCSSMerger<TCSSObject extends object> {
   private _cssParts: Set<IBuildVariantsMergerCssParts<TCSSObject>> = new Set()

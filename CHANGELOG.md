@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.5.3 (2024-03-10)
+
+### Changed
+
+- Update dependencies.
+- Use `@emotion` instead of `styled-components` that is more versatile to be used with build-variants.
+- Fix minor typos.
+
 ## v1.5.2 (2024-03-10)
 
 ### Changed
