@@ -33,7 +33,7 @@ export function buildVariants<TProps extends object>(props: TProps) {
 }
 ```
 
-*This sets up a function that accepts props and returns a builder configured for styled-components.*
+*This sets up a function that accepts props and returns a builder configured for CSSObject objects.*
 
 ---
 
