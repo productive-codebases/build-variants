@@ -6,7 +6,7 @@
 
 - Update the development toolchain to current package versions, including Vitest 4, TypeScript 6, and Biome 2.
 - Reshape the README into a shorter API-first guide while keeping coverage of the full builder surface.
-- Improve published package metadata with `exports`, `files`, `sideEffects`, and a Node 18+ engine declaration.
+- Improve published package metadata with `exports`, `files`, `sideEffects`, and a Node 20+ engine declaration.
 
 ### Fixed
 

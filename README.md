@@ -4,13 +4,15 @@ Type-safe style composition for CSS-in-JS objects.
 
 `build-variants` helps you build a style object from component props without pushing variant logic into the component body. It works well with Emotion, styled-components, MUI, or any setup that consumes plain object styles.
 
+## Requirements
+
+- Node.js 20 or newer for local development, validation, and release workflows.
+
 ## Installation
 
 ```bash
-npm install @productive-codebases/build-variants lodash.mergewith
+npm install @productive-codebases/build-variants
 ```
-
-`lodash.mergewith` is a peer dependency used for deep merging.
 
 ## Quick Start
 

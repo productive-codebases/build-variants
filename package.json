@@ -24,7 +24,7 @@
   },
   "sideEffects": false,
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "scripts": {
     "build": "rm -rf dist && tsc --project tsconfig.build.json",
@@ -37,7 +37,6 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@emotion/react": "^11.14.0",
-    "@types/lodash.mergewith": "^4.6.9",
     "@types/node": "^24.10.1",
     "nodemon": "^3.1.14",
     "prettier": "^3.8.0",
@@ -45,9 +44,6 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.7"
-  },
-  "peerDependencies": {
-    "lodash.mergewith": "^4.6.2"
   },
   "dependencies": {}
 }

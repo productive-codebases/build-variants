@@ -152,6 +152,43 @@ describe('BuildVariantsCSSMerger', () => {
     })
   })
 
+  it('should concatenate arrays when deeply merging CSS', () => {
+    interface IArrayObject {
+      animationNames?: string[]
+    }
+
+    const cssParts: Array<IBuildVariantsMergerCssParts<IArrayObject>> = [
+      {
+        cssObject: {
+          animationNames: ['fade-in']
+        },
+        options: {
+          weight: 0,
+          _privateProp: false
+        }
+      },
+      {
+        cssObject: {
+          animationNames: ['slide-up']
+        },
+        options: {
+          weight: 0,
+          _privateProp: false
+        }
+      }
+    ]
+
+    const cssMerger = new BuildVariantsCSSMerger<IArrayObject>()
+
+    cssParts.forEach(cssPart => {
+      cssMerger.add(cssPart.cssObject, cssPart.options)
+    })
+
+    expect(cssMerger.end()).toEqual({
+      animationNames: ['fade-in', 'slide-up']
+    })
+  })
+
   it('should prioritize weight before private prop ordering', () => {
     const cssParts: Array<IBuildVariantsMergerCssParts<CSSObject>> = [
       {

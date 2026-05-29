@@ -5,6 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
-    bail: 0
+    bail: 0,
+    reporters: ['verbose']
   }
 })
