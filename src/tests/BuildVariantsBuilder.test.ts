@@ -1,3 +1,5 @@
+import type { MockInstance } from 'vitest'
+import { vi } from 'vitest'
 import { logger } from '../helpers/logger'
 import { newBuildVariants } from '../lib/newBuildVariants'
 import type { LitteralObject } from '../types'
@@ -920,13 +922,10 @@ describe('BuildVariantsBuilder', () => {
   })
 
   describe('debug()', () => {
-    let loggerSpy: jest.SpyInstance<
-      void,
-      [message?: any, ...optionalParams: any[]]
-    >
+    let loggerSpy: MockInstance
 
     beforeEach(() => {
-      loggerSpy = jest.spyOn(logger, 'debug').mockReturnThis()
+      loggerSpy = vi.spyOn(logger, 'debug').mockReturnThis()
     })
 
     afterEach(() => {

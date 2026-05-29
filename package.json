@@ -32,21 +32,19 @@
     "lint": "biome check .",
     "lint:fix": "biome check . --write",
     "prepublishOnly": "npm run check && npm run lint && npm t && npm run build",
-    "test": "jest --runInBand"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@emotion/react": "^11.14.0",
-    "@types/jest": "^30.0.0",
     "@types/lodash.mergewith": "^4.6.9",
     "@types/node": "^24.10.1",
-    "jest": "^30.2.0",
     "nodemon": "^3.1.14",
     "prettier": "^3.8.0",
-    "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
   },
   "peerDependencies": {
     "lodash.mergewith": "^4.6.2"
