@@ -5,20 +5,20 @@ import type {
   BuildVariantsMergerCssPartsOptionsPublic,
   IBuildVariantsBuilderOptions,
   IBuildVariantsMergerCssPartsOptions,
-  LitteralObject,
+  LiteralObject,
   PropsVariantsDefinitions
 } from '../types'
 import type { Maybe, MaybeUndef, Perhaps } from '../types/helpers'
 import BuildVariantsCSSMerger from './BuildVariantsCSSMerger'
 
 type BuildVariantsBuilderFn<
-  TProps extends LitteralObject,
-  TCSSObject extends LitteralObject
+  TProps extends LiteralObject,
+  TCSSObject extends LiteralObject
 > = (builder: BuildVariantsBuilder<TProps, TCSSObject>) => TCSSObject
 
 export default class BuildVariantsBuilder<
-  TProps extends LitteralObject,
-  TCSSObject extends LitteralObject
+  TProps extends LiteralObject,
+  TCSSObject extends LiteralObject
 > {
   private _allVariantsDefinitions: PropsVariantsDefinitions<
     TProps,
@@ -53,7 +53,7 @@ export default class BuildVariantsBuilder<
     }
 
     if (typeof cssOrFn === 'function') {
-      // create an isolate builder instance to be able to compose with base variants
+      // create an isolated builder instance to be able to compose with base variants
       // locally to the `css` block
       const cssObject = cssOrFn(
         new BuildVariantsBuilder<TProps, TCSSObject>(this._props, {
@@ -207,7 +207,7 @@ export default class BuildVariantsBuilder<
   }
 
   /**
-   * Define compounds CSS for a list of variants.
+   * Define compound CSS for a list of variants.
    */
   compoundVariants<TVariant extends string>(
     propName: keyof TProps,
@@ -311,7 +311,7 @@ export default class BuildVariantsBuilder<
   }
 
   /**
-   * Print privates for debugging.
+   * Print internals for debugging.
    */
   debug(apply?: boolean | (() => boolean)): this {
     const displayDebug = isDefined(apply)

@@ -38,7 +38,7 @@ export default class BuildVariantsCSSMerger<TCSSObject extends object> {
   }
 
   /**
-   * Print privates for debugging.
+   * Print internals for debugging.
    */
   debug(): this {
     logger.debug('CSS parts:', this._cssParts)

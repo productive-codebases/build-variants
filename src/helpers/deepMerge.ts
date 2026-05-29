@@ -1,6 +1,6 @@
 /**
  * Deep merge of T object.
- * Arrays will be concatened too and object will be deep merged.
+ * Arrays will be concatenated too and objects will be deeply merged.
  */
 export function deepMerge<T1, T2>(obj1: T1, obj2: T2): T1 & T2 {
   return mergeValues(obj1, obj2) as T1 & T2
