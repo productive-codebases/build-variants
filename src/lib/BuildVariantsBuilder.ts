@@ -250,7 +250,7 @@ export default class BuildVariantsBuilder<
     }
 
     // pass raw object directly
-    if (apply) {
+    if (applyValue) {
       return this._addCssPart(null, cssOrFn, options)
     }
 

@@ -340,6 +340,16 @@ describe('BuildVariantsBuilder', () => {
         border: '1px solid red'
       })
     })
+
+    it('should not apply raw css when the predicate function returns false', () => {
+      const css = testBuildVariants({})
+        .if(() => false, {
+          color: 'red'
+        })
+        .end()
+
+      expect(css).toEqual({})
+    })
   })
 
   describe('compoundVariant()', () => {
@@ -638,8 +648,7 @@ describe('BuildVariantsBuilder', () => {
         $debug?: 'true' | 'false'
       }
 
-      // biome-ignore lint/complexity/noBannedTypes: <explanation>
-      const css = testBuildVariants<{}, CustomCSSObject>({})
+      const css = testBuildVariants<Record<string, never>, CustomCSSObject>({})
         .css({
           $debug: 'true',
           opacity: 0.5
@@ -995,7 +1004,7 @@ describe('BuildVariantsBuilder', () => {
         .debug(() => false)
         .end()
 
-      expect(loggerSpy).not.toBeCalled()
+      expect(loggerSpy).not.toHaveBeenCalled()
     })
   })
 })
