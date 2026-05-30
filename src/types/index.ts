@@ -1,6 +1,11 @@
 import type { ObjectNonNullable } from './helpers'
 
-export type LitteralObject = object
+export type LiteralObject = object
+
+/**
+ * @deprecated Use LiteralObject instead.
+ */
+export type LitteralObject = LiteralObject
 
 export type VariantDefinitions<TCSSObject extends object> = Map<
   string,

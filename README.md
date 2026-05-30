@@ -1,12 +1,12 @@
 # Build-variants
 
-Declaratively build style objects based on your React component props with a clean, type-safe API.
+Declaratively build style objects from your React component props with a clean, type-safe API.
 
 ---
 
 ## Introduction
 
-**Build-variants** helps you organize and compose CSS (or any style values) based on component props. It separates styling logic from component logic, making your code easier to maintain and extend. Note that it is a *builder*—it doesn’t apply styles by itself but returns an object your CSS-in-JS library can use.
+**Build-variants** helps you organize and compose CSS, or any other style values, from component props. It keeps styling logic separate from component logic, which makes your code easier to maintain and extend. It is a *builder*: it does not apply styles itself, but instead returns an object that your CSS-in-JS library can consume.
 
 ---
 
@@ -20,9 +20,9 @@ npm install @productive-codebases/build-variants
 
 ## Usage
 
-### 1. Setup Your Factory Function
+### 1. Set Up Your Factory Function
 
-Configure **build-variants** with your styling engine. For example, with _styled-components_:
+Configure **build-variants** for your styling engine. For example, with _styled-components_:
 
 ```ts
 import type { CSSObject } from '@emotion/react'
@@ -33,13 +33,13 @@ export function buildVariants<TProps extends object>(props: TProps) {
 }
 ```
 
-*This sets up a function that accepts props and returns a builder configured for CSSObject objects.*
+*This creates a helper that takes props and returns a builder configured for `CSSObject` styles.*
 
 ---
 
 ### 2. Decorate a Component
 
-Integrate the builder with any styled function that accepts a CSSObject-like object. Whether you're using Emotion, styled-components, MUI, or any other library, the generated style object will work seamlessly.
+Use the builder with any styled function that accepts a CSSObject-like object. Whether you are using Emotion, styled-components, MUI, or another library, the generated style object fits naturally into the existing API.
 
 ```tsx
 import styled from '@emotion/styled'
@@ -55,13 +55,13 @@ export default function Button() {
 }
 ```
 
-*In this example, no extra styles are added; the builder returns an empty style object.*
+*In this example, no additional styles are defined, so the builder returns an empty style object.*
 
 ---
 
 ### 3. Adding CSS Blocks
 
-Chain CSS blocks to add styles:
+Chain CSS blocks to add styles incrementally:
 
 ```ts
 const Div = styled.div(props => {
@@ -90,7 +90,7 @@ const Div = styled.div(props => {
 
 #### Simple Variant
 
-Define a style variant based on a prop value:
+Define a style variant from a single prop value:
 
 ```tsx
 import styled from '@emotion/styled'
@@ -127,18 +127,18 @@ export default function Button(props: IButtonProps) {
 **Applied styles:**
 
 - **When `type="primary"`:**
-  - Common: `display: inline-block`, `padding: 10px`
-  - Variant: `background: blue`, `color: white`
+  - Base styles: `display: inline-block`, `padding: 10px`
+  - Variant styles: `background: blue`, `color: white`
 
 - **When `type="secondary"`:**
-  - Common: `display: inline-block`, `padding: 10px`
-  - Variant: `background: silver`, `color: black`
+  - Base styles: `display: inline-block`, `padding: 10px`
+  - Variant styles: `background: silver`, `color: black`
 
 ---
 
 #### Multiple Variants
 
-Allow multiple variant values (e.g., text styles):
+Allow multiple variant values, for example to compose text styles:
 
 ```tsx
 interface IButtonProps {
@@ -171,7 +171,7 @@ const Div = styled.div<IButtonProps>(props => {
 })
 ```
 
-Usage example:
+Example usage:
 
 ```tsx
 // Renders a primary button with both bold and red text styles
@@ -184,20 +184,21 @@ Usage example:
 - **Text variants:**
   - `strong` adds `fontWeight: bold`
   - `error` adds `color: red`
-*Note: In case of conflicting styles (like two colors), the later applied style wins.*
+
+*Note: If styles conflict, for example when two variants set `color`, the later applied style wins.*
 
 ---
 
 #### Compound Variants
 
-Compose multiple variants using private (internal) and public (external) props:
+Compose multiple variants by combining private (internal) and public (external) props:
 
 ```tsx
 interface IButtonProps {
-  // Private variants (used for composing public ones)
+  // Private variants used to compose public ones
   _background?: 'primary' | 'secondary' | 'success' | 'error'
   _text?: Array<'dark' | 'light' | 'success' | 'error' | 'strong'>
-  // Public variant: the component's API
+  // Public variant exposed by the component API
   type: 'primary' | 'secondary' | 'success' | 'error'
   children: string
 }
@@ -222,7 +223,7 @@ const Div = styled.div<IButtonProps>(props => {
       error: { color: 'red' },
       strong: { fontWeight: 'bold' }
     })
-    // Define compound variants mapping public 'type' to private ones.
+    // Map the public `type` prop to the private variants.
     .compoundVariant('type', props.type, {
       primary: builder_ =>
         builder_.get('_background', 'primary').get('_text', ['light']).end(),
@@ -273,7 +274,7 @@ Usage examples:
 
 ### 5. Overriding with Private Variants
 
-Private variants have a higher precedence than public ones, allowing you to override the default behavior for specific use cases.
+Private variants take precedence over public ones, which lets you override the default behavior for specific use cases.
 
 ```tsx
 <Button type="error">Error button</Button>
@@ -284,14 +285,14 @@ Private variants have a higher precedence than public ones, allowing you to over
 ```
 
 **Applied styles:**
-- The first button applies the default compound variant for `error`.
-- The second button overrides the `_background` variant to `"success"`, so it receives `background: #eaff96` (as defined in the success mapping) while keeping the other error-related styles.
+- The first button uses the default compound variant for `error`.
+- The second button overrides `_background` with `"success"`, so it receives `background: #eaff96` while keeping the other error-related styles.
 
 ---
 
 ### 6. Conditional Blocks
 
-Enable or skip blocks of styles based on a condition:
+Apply or skip blocks of styles based on a condition:
 
 ```tsx
 const Div = styled.div<IButtonProps>(props => {
@@ -322,13 +323,13 @@ const Div = styled.div<IButtonProps>(props => {
 ```
 
 **Applied styles:**
-- If `applyTextVariant` is true, the text-related styles are applied. Otherwise, they are skipped.
+- If `applyTextVariant` is true, the text-related styles are applied. Otherwise, they are omitted.
 
 ---
 
 ### 7. Blocks Weight
 
-Control the order of style application by assigning a weight to each block:
+Control the order in which styles are applied by assigning a weight to each block:
 
 ```ts
 const Div = styled.div<IButtonProps>(props => {
@@ -350,13 +351,13 @@ const Div = styled.div<IButtonProps>(props => {
 ```
 
 **Applied styles:**
-- The `color: silver` style with weight 10 overrides any earlier conflicting `color` from `_text` if applied later.
+- The `color: silver` block has weight `10`, so it overrides any earlier conflicting `color` value from `_text`.
 
 ---
 
 ### 8. Debugging
 
-Log internal builder state to help diagnose complex style applications:
+Log the internal builder state to help diagnose complex style composition:
 
 ```tsx
 const Div = styled.div<IButtonProps>(props => {
@@ -382,7 +383,7 @@ const Div = styled.div<IButtonProps>(props => {
 })
 ```
 
-**Result:** Detailed logs in the console show which styles are applied and the builder's internal state.
+**Result:** Detailed console output shows which styles are applied and what the builder contains internally.
 
 ---
 
@@ -403,11 +404,11 @@ const Div = styled.div<IButtonProps>(props => {
 
 ## Summary
 
-Build-variants empowers you to:
+Build-variants helps you:
 - **Declare and compose style variants** with a clean, declarative, and type-safe API.
 - **Separate styling logic** from component code.
 - **Support multiple, compound, and conditional variants** for flexible component design.
 - **Control style precedence** with block weights.
 - **Debug** style composition effortlessly.
 
-Enjoy building maintainable, flexible UI components with Build-variants!
+Use Build-variants to build UI components that stay flexible, explicit, and easier to maintain.

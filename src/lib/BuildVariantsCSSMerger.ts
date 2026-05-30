@@ -38,7 +38,7 @@ export default class BuildVariantsCSSMerger<TCSSObject extends object> {
   }
 
   /**
-   * Print privates for debugging.
+   * Print internals for debugging.
    */
   debug(): this {
     logger.debug('CSS parts:', this._cssParts)
@@ -80,7 +80,7 @@ export default class BuildVariantsCSSMerger<TCSSObject extends object> {
     }
 
     const cssParts = Array.from(this._cssParts.values()).sort((a, b) => {
-      return sortByWeight(a, b) | sortByPrivateProp(a, b)
+      return sortByWeight(a, b) || sortByPrivateProp(a, b)
     })
 
     // deep merge all parts

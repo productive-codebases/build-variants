@@ -1,12 +1,14 @@
+import type { MockInstance } from 'vitest'
+import { vi } from 'vitest'
 import { logger } from '../helpers/logger'
 import { newBuildVariants } from '../lib/newBuildVariants'
-import type { LitteralObject } from '../types'
+import type { LiteralObject } from '../types'
 import type { CSSObject } from '../types/cssObject'
 
 describe('BuildVariantsBuilder', () => {
   function testBuildVariants<
-    TProps extends LitteralObject,
-    TCSSObject extends LitteralObject = CSSObject
+    TProps extends LiteralObject,
+    TCSSObject extends LiteralObject = CSSObject
   >(props: TProps) {
     return newBuildVariants<TProps, TCSSObject>(props)
   }
@@ -295,7 +297,7 @@ describe('BuildVariantsBuilder', () => {
             })
             .end()
         })
-        // should be applyed
+        // should be applied
         .if(
           () => true,
           builder_ => {
@@ -323,11 +325,11 @@ describe('BuildVariantsBuilder', () => {
               .end()
           }
         )
-        // should not be applyed
+        // should not be applied
         .if(false, {
           fontSize: '16px'
         })
-        // should be applyed
+        // should be applied
         .if(true, {
           border: '1px solid red'
         })
@@ -339,6 +341,16 @@ describe('BuildVariantsBuilder', () => {
         fontWeight: 'bold',
         border: '1px solid red'
       })
+    })
+
+    it('should not apply raw css when the predicate function returns false', () => {
+      const css = testBuildVariants({})
+        .if(() => false, {
+          color: 'red'
+        })
+        .end()
+
+      expect(css).toEqual({})
     })
   })
 
@@ -638,8 +650,7 @@ describe('BuildVariantsBuilder', () => {
         $debug?: 'true' | 'false'
       }
 
-      // biome-ignore lint/complexity/noBannedTypes: <explanation>
-      const css = testBuildVariants<{}, CustomCSSObject>({})
+      const css = testBuildVariants<Record<string, never>, CustomCSSObject>({})
         .css({
           $debug: 'true',
           opacity: 0.5
@@ -851,8 +862,8 @@ describe('BuildVariantsBuilder', () => {
     }
 
     function testBuildVariantsForCustomShapes<
-      TProps extends LitteralObject,
-      TAnimateObject extends LitteralObject = IAnimateObject
+      TProps extends LiteralObject,
+      TAnimateObject extends LiteralObject = IAnimateObject
     >(props: TProps) {
       return newBuildVariants<TProps, TAnimateObject>(props)
     }
@@ -911,13 +922,10 @@ describe('BuildVariantsBuilder', () => {
   })
 
   describe('debug()', () => {
-    let loggerSpy: jest.SpyInstance<
-      void,
-      [message?: any, ...optionalParams: any[]]
-    >
+    let loggerSpy: MockInstance
 
     beforeEach(() => {
-      loggerSpy = jest.spyOn(logger, 'debug').mockReturnThis()
+      loggerSpy = vi.spyOn(logger, 'debug').mockReturnThis()
     })
 
     afterEach(() => {
@@ -995,7 +1003,7 @@ describe('BuildVariantsBuilder', () => {
         .debug(() => false)
         .end()
 
-      expect(loggerSpy).not.toBeCalled()
+      expect(loggerSpy).not.toHaveBeenCalled()
     })
   })
 })
