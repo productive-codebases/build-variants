@@ -80,4 +80,19 @@ describe('deepMerge', () => {
       animationNames: ['fade-in', 'slide-up', 'scale-in']
     })
   })
+
+  it('should append a single right value when the left value is an array', () => {
+    const merged = deepMerge(
+      {
+        animationNames: ['fade-in', 'slide-up']
+      },
+      {
+        animationNames: 'scale-in'
+      }
+    )
+
+    expect(merged).toEqual({
+      animationNames: ['fade-in', 'slide-up', 'scale-in']
+    })
+  })
 })
